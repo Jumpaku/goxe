@@ -108,11 +108,10 @@ func ProcessCode(prefix, filename string, dst io.Writer, src io.Reader) (err err
 					s.logLocalStatement(c, node)
 				}
 
-				if node.Tok == token.ASSIGN {
-					s.logLocalAssignment(c, node)
-				}
-				if _, ok := c.Parent().(*ast.BlockStmt); ok && node.Tok == token.DEFINE {
-					s.logLocalAssignment(c, node)
+				if _, ok := c.Parent().(*ast.BlockStmt); ok {
+					if node.Tok == token.ASSIGN || node.Tok == token.DEFINE {
+						s.logLocalAssignment(c, node)
+					}
 				}
 			case *ast.ExprStmt:
 				if _, ok := c.Parent().(*ast.BlockStmt); ok {
