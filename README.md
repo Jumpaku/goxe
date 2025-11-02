@@ -5,41 +5,6 @@ xtracego is a command-line tool to run Go source code injecting xtrace.
 for rewriting Go source code to inject tracing and logging for function calls, statements, variables, and more.
 It provides a command-line interface to rewrite, build, and run Go programs with tracing enabled, making it easier to debug and understand code execution.
 
-## Features
-
-### Xtrace
-
-- Trace basic statements
-- Trace function and method calls
-- Trace switch/select cases
-- Trace variables and constants
-
-## Installation
-
-```sh
-go install github.com/jumpaku/xtracego/cmd/xtracego@latest
-```
-
-## Usage
-
-### Rewrite source files to inject xtrace
-
-```sh
-xtracego rewrite -o=out_dir ./path/to/package
-```
-
-### Build source files with injected xtrace
-
-```sh
-xtracego build -o=build_dir ./path/to/package
-```
-
-### Run source files with injected xtrace
-
-```sh
-xtracego run ./path/to/package
-```
-
 ## Example
 
 ### FizzBuzz
@@ -111,11 +76,51 @@ Fizz
 ...
 ```
 
+## Features
+
+- Run Go source files directly with injected xtrace.
+- Build an executable file from source files with injected xtrace.
+- Rewrite source files to inject xtrace.
+
+### Xtrace
+
+Xtrace is execution trace information. The following traces are available:
+
+- Traces of basic statements
+- Traces of function and method calls
+- Traces of switch/select cases
+- Traces of  and constants
+
+## Installation
+
+```sh
+go install github.com/jumpaku/xtracego/cmd/xtracego@latest
+```
+
+## Usage
+
+### Run Go source files directly with injected xtrace
+
+```sh
+xtracego run ./path/to/package
+```
+
+### Build an executable file from source files with injected xtrace
+
+```sh
+xtracego build -o=build_dir ./path/to/package
+```
+
+### Rewrite source files to inject xtrace
+
+```sh
+xtracego rewrite -o=out_dir ./path/to/package
+```
 
 ## Documentation
 
 ### Command-line interface
 
-See the following CLI documentation.
+See the following CLI documentation:
 
 https://github.com/Jumpaku/xtracego/blob/main/docs/xtracego.md
