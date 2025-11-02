@@ -92,7 +92,7 @@ func (h cliHandler) Run_Build(input Input_Build) error {
 
 	if pkg.GoModFile != "" {
 		cmd := exec.Command("go", "mod", "tidy")
-		cmd.Dir, cmd.Stdout, cmd.Stderr = outDir, os.Stdout, os.Stderr
+		cmd.Dir, cmd.Stdout, cmd.Stderr, cmd.Stdin = outDir, os.Stdout, os.Stderr, os.Stdin
 		log.Printf("[execute] %s [%s]\n", cmd.String(), cmd.Dir)
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to run go mod download: %w", err)
@@ -103,7 +103,7 @@ func (h cliHandler) Run_Build(input Input_Build) error {
 		args = append(args, input.Opt_GoBuildArg...)
 		args = append(args, input.Arg_Package...)
 		cmd := exec.Command("go", args...)
-		cmd.Dir, cmd.Stdout, cmd.Stderr = outDir, os.Stdout, os.Stderr
+		cmd.Dir, cmd.Stdout, cmd.Stderr, cmd.Stdin = outDir, os.Stdout, os.Stderr, os.Stdin
 		log.Printf("[execute] %s [%s]\n", cmd.String(), cmd.Dir)
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to run go build: %w", err)
@@ -145,7 +145,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 
 	if pkg.GoModFile != "" {
 		cmd := exec.Command("go", "mod", "tidy")
-		cmd.Dir, cmd.Stdout, cmd.Stderr = outDir, os.Stdout, os.Stderr
+		cmd.Dir, cmd.Stdout, cmd.Stderr, cmd.Stdin = outDir, os.Stdout, os.Stderr, os.Stdin
 		log.Printf("[execute] %s [%s]\n", cmd.String(), cmd.Dir)
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to run go mod download: %w", err)
@@ -162,7 +162,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 		args = append(args, "-o", execFile)
 		args = append(args, packageArgs...)
 		cmd := exec.Command("go", args...)
-		cmd.Dir, cmd.Stdout, cmd.Stderr = outDir, os.Stdout, os.Stderr
+		cmd.Dir, cmd.Stdout, cmd.Stderr, cmd.Stdin = outDir, os.Stdout, os.Stderr, os.Stdin
 		log.Printf("[execute] %s [%s]\n", cmd.String(), cmd.Dir)
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to run go build: %w", err)
@@ -170,7 +170,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 	}
 	{
 		cmd := exec.Command(execFile, cliArgs...)
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+		cmd.Stdout, cmd.Stderr, cmd.Stdin = os.Stdout, os.Stderr, os.Stdin
 		log.Printf("[execute] %s\n", cmd.String())
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to run go build: %w", err)

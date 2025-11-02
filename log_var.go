@@ -9,29 +9,40 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func (s XTrace) newVariableLogStmt(name string) ast.Stmt {
-	// log.Println(fmt.Sprintf(`[variable] VarName=%#v`, VarName))
+func (s XTrace) newVariableLogStmt(name string, shadowed bool) ast.Stmt {
+	// log.Println(fmt.Sprintf(`[VAR] VarName=%#v`, VarName))
+	// log.Println(fmt.Sprintf(`[VAR] VarName=<shadowed>`))
 	content := fmt.Sprintf("[VAR] %s=%%#v", name)
+	args := []ast.Expr{
+		&ast.BasicLit{
+			Kind:  token.STRING,
+			Value: fmt.Sprintf("%q", content),
+		},
+		&ast.Ident{Name: name},
+	}
+	if shadowed {
+		content = fmt.Sprintf("[VAR] %s=<shadowed>", name)
+		args = []ast.Expr{
+			&ast.BasicLit{
+				Kind:  token.STRING,
+				Value: fmt.Sprintf("%q", content),
+			},
+		}
+	}
 	return &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: ast.NewIdent(s.prefix + "_log.Println"),
 			Args: []ast.Expr{
 				&ast.CallExpr{
-					Fun: ast.NewIdent(s.prefix + "_fmt.Sprintf"),
-					Args: []ast.Expr{
-						&ast.BasicLit{
-							Kind:  token.STRING,
-							Value: fmt.Sprintf("%q", content),
-						},
-						&ast.Ident{Name: name},
-					},
+					Fun:  ast.NewIdent(s.prefix + "_fmt.Sprintf"),
+					Args: args,
 				},
 			},
 		},
 	}
 }
 
-func (s XTrace) newVariableLogDecl(name string) *ast.GenDecl {
+func (s XTrace) newVariableLogDecl(name string, shadowed bool) *ast.GenDecl {
 	//var _ = func() int {
 	//	log.Println(fmt.Sprintf(`VarName: %+v path/to/source.go:123:45`, VarName))
 	//	return 0
@@ -47,7 +58,7 @@ func (s XTrace) newVariableLogDecl(name string) *ast.GenDecl {
 							Type: &ast.FuncType{Results: &ast.FieldList{List: []*ast.Field{{Type: ast.NewIdent("int")}}}},
 							Body: &ast.BlockStmt{
 								List: []ast.Stmt{
-									s.newVariableLogStmt(name),
+									s.newVariableLogStmt(name, shadowed),
 									&ast.ReturnStmt{Results: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: "0"}}},
 								},
 							},
@@ -70,7 +81,7 @@ func (s XTrace) logFileVariable(c *astutil.Cursor, node *ast.GenDecl) {
 			if name.Name == "_" {
 				continue
 			}
-			decls = append(decls, s.newVariableLogDecl(name.Name))
+			decls = append(decls, s.newVariableLogDecl(name.Name, false))
 		}
 	}
 	mutable.Reverse(decls)
@@ -94,7 +105,7 @@ func (s XTrace) logLocalVariable(c *astutil.Cursor, node *ast.DeclStmt) {
 			if name.Name == "_" {
 				continue
 			}
-			stmts = append(stmts, s.newVariableLogStmt(name.Name))
+			stmts = append(stmts, s.newVariableLogStmt(name.Name, false))
 		}
 	}
 	mutable.Reverse(stmts)
@@ -110,7 +121,7 @@ func (s XTrace) logLocalAssignment(c *astutil.Cursor, node *ast.AssignStmt) {
 		if !ok || ident.Name == "_" {
 			continue
 		}
-		stmts = append(stmts, s.newVariableLogStmt(ident.Name))
+		stmts = append(stmts, s.newVariableLogStmt(ident.Name, false))
 	}
 	mutable.Reverse(stmts)
 	for _, decl := range stmts {
@@ -122,7 +133,7 @@ func (s XTrace) logForVariables(c *astutil.Cursor, info *ForInfo) {
 	body := info.Body
 	vars := []ast.Stmt{}
 	for _, ident := range info.Variables() {
-		vars = append(vars, s.newVariableLogStmt(ident.Name))
+		vars = append(vars, s.newVariableLogStmt(ident.Name, false))
 	}
 	body.List = append(vars, body.List...)
 	c.Replace(body)

@@ -21,14 +21,20 @@ type XTrace struct {
 func (s XTrace) fragment(pos, end token.Pos) string {
 	return string(s.src[pos-1 : end-1])
 }
-func (s XTrace) fragmentLine(pos, end token.Pos) string {
+func (s XTrace) fragmentLine(pos token.Pos) string {
 	begin := pos - 1
 	for ; begin > 0; begin-- {
 		if s.src[begin-1] == '\n' || s.src[begin-1] == '\r' {
 			break
 		}
 	}
-	frag := s.fragment(begin+1, end)
+	end := pos
+	for ; end < token.Pos(len(s.src)); end++ {
+		if s.src[end] == '\n' || s.src[end] == '\r' {
+			break
+		}
+	}
+	frag := s.fragment(begin+1, end+1)
 	frag, _, _ = strings.Cut(frag, "\n")
 	frag, _, _ = strings.Cut(frag, "\r")
 	return frag

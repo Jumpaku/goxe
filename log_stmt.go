@@ -66,7 +66,7 @@ func (s XTrace) logFileStatement(c *astutil.Cursor, node *ast.GenDecl) {
 			continue
 		}
 		pos := s.fset.Position(spec.Pos())
-		frag := s.fragmentLine(spec.Pos(), spec.End())
+		frag := s.fragmentLine(spec.Pos())
 		c.InsertBefore(s.newStatementLogDecl(pos, frag))
 	}
 }
@@ -140,6 +140,6 @@ func (s XTrace) tryLogLocalStatement(c *astutil.Cursor, node ast.Stmt) {
 		}
 	}
 	pos := s.fset.Position(node.Pos())
-	frag := s.fragmentLine(node.Pos(), node.End())
+	frag := s.fragmentLine(node.Pos())
 	c.InsertBefore(s.newStatementLogStmt(pos, frag))
 }

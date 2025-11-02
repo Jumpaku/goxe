@@ -49,20 +49,16 @@ func ProcessCode(cfg Config, filename string, dst io.Writer, src io.Reader) (err
 	astutil.AddNamedImport(fset, f, cfg.Prefix+"_log", "log")
 	astutil.AddNamedImport(fset, f, cfg.Prefix+"_fmt", "fmt")
 
-	funcByBody := CollectFuncInfo(f)
-	forByBody := CollectForInfo(f)
-	caseByBody := CollectCaseInfo(f)
-	ifElseByBody := CollectIfElseInfo(f)
 	s := XTrace{
 		fset:      fset,
 		src:       srcBytes,
 		lineWidth: 80,
 		prefix:    cfg.Prefix,
 
-		funcByBody:   funcByBody,
-		forByBody:    forByBody,
-		caseByBody:   caseByBody,
-		ifElseByBody: ifElseByBody,
+		funcByBody:   CollectFuncInfo(f),
+		forByBody:    CollectForInfo(f),
+		caseByBody:   CollectCaseInfo(f),
+		ifElseByBody: CollectIfElseInfo(f),
 	}
 
 	astutil.Apply(f, nil, func(c *astutil.Cursor) bool {
@@ -80,16 +76,16 @@ func ProcessCode(cfg Config, filename string, dst io.Writer, src io.Reader) (err
 			}
 		case ast.Stmt:
 			{
-				if info, ok := funcByBody[node]; ok {
+				if info, ok := s.funcByBody[node]; ok {
 					s.logCall(c, info)
 				}
-				if info, ok := forByBody[node]; ok {
+				if info, ok := s.forByBody[node]; ok {
 					s.logForVariables(c, info)
 				}
-				if info, ok := caseByBody[node]; ok {
+				if info, ok := s.caseByBody[node]; ok {
 					s.logCase(c, info)
 				}
-				if info, ok := ifElseByBody[node]; ok {
+				if info, ok := s.ifElseByBody[node]; ok {
 					s.logIfElse(c, info)
 				}
 			}
@@ -257,53 +253,53 @@ const (
 )
 
 type IfElseInfo struct {
-	IfElseType IfElseType
-	Body       *ast.BlockStmt
-	IfStmt     *ast.IfStmt
-	Stack      []*ast.IfStmt
+	Body     *ast.BlockStmt
+	ElseBody *ast.BlockStmt
+	Parents  []*ast.IfStmt
+	IfStmt   *ast.IfStmt
 }
 
-func (i IfElseInfo) Condition() (begin, end token.Pos) {
-	return i.IfStmt.Cond.Pos(), i.IfStmt.Cond.End()
+func (i IfElseInfo) Variables() (vars []*ast.Ident) {
+	for _, ifStmt := range append(append([]*ast.IfStmt{}, i.Parents...), i.IfStmt) {
+		if ifStmt.Init != nil {
+			if assign, ok := ifStmt.Init.(*ast.AssignStmt); ok {
+				for _, lhs := range assign.Lhs {
+					if ident, ok := lhs.(*ast.Ident); ok && ident.Name != "_" {
+						vars = append(vars, ident)
+					}
+				}
+			}
+		}
+	}
+	return vars
 }
 
 func CollectIfElseInfo(f *ast.File) (ifElseByBody map[ast.Stmt]*IfElseInfo) {
 	ifElseByBody = map[ast.Stmt]*IfElseInfo{}
 	ast.PreorderStack(f, nil, func(n ast.Node, s []ast.Node) bool {
-		stack := []*ast.IfStmt{}
-		for i := len(s) - 1; i >= 0; i-- {
-			stmt, ok := s[i].(*ast.IfStmt)
-			if !ok {
-				break
-			}
-			stack = append(stack, stmt)
-		}
-		mutable.Reverse(stack)
-
 		switch node := n.(type) {
 		case *ast.IfStmt:
-			_, elseIf := s[len(s)-1].(*ast.IfStmt)
-			if elseIf {
-				ifElseByBody[node.Body] = &IfElseInfo{
-					IfElseType: IfElseType_ElseIf,
-					Body:       node.Body,
-					IfStmt:     node,
-					Stack:      stack,
+			stack := []*ast.IfStmt{}
+			for i := len(s) - 1; i >= 0; i-- {
+				stmt, ok := s[i].(*ast.IfStmt)
+				if !ok {
+					break
 				}
-			} else {
-				ifElseByBody[node.Body] = &IfElseInfo{
-					IfElseType: IfElseType_If,
-					Body:       node.Body,
-					IfStmt:     node,
-					Stack:      stack,
-				}
+				stack = append(stack, stmt)
+			}
+			mutable.Reverse(stack)
+
+			ifElseByBody[node.Body] = &IfElseInfo{
+				Body:    node.Body,
+				IfStmt:  node,
+				Parents: stack,
 			}
 			if node.Else != nil {
 				if blockBody, ok := node.Else.(*ast.BlockStmt); ok {
 					ifElseByBody[blockBody] = &IfElseInfo{
-						IfElseType: IfElseType_Else,
-						Body:       blockBody,
-						IfStmt:     node,
+						ElseBody: blockBody,
+						IfStmt:   node,
+						Parents:  stack,
 					}
 				}
 			}

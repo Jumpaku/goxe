@@ -56,11 +56,15 @@ func (t T) method() {
 		fmt.Println("Grade F")
 	}
 
-	if true {
-		fmt.Println("if")
-	} else if false {
-		fmt.Println("else if")
+	if score = 1; score == 0 {
+		fmt.Println("0")
+	} else if score = 2; score == 1 {
+		fmt.Println("1")
+	} else if score = 3; score == 2 {
+		fmt.Println("2")
+	} else if score = 4; score == 3 {
+		fmt.Println("3")
 	} else {
-		fmt.Println("else")
+		fmt.Println("4")
 	}
 }
