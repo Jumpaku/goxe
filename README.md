@@ -2,9 +2,6 @@
 
 xtracego is a command-line tool to run Go source code injecting xtrace.
 
-for rewriting Go source code to inject tracing and logging for function calls, statements, variables, and more.
-It provides a command-line interface to rewrite, build, and run Go programs with tracing enabled, making it easier to debug and understand code execution.
-
 ## Example
 
 ### FizzBuzz
