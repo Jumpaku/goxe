@@ -1,4 +1,4 @@
-package goxe
+package xtracego
 
 import (
 	"fmt"
@@ -83,7 +83,7 @@ func ResolvePackage(resolveType ResolveType, packageArgs []string) (resolved Res
 			}
 			sourceFiles, err := resolveSourceFiles(packageArgs)
 			if err != nil {
-				return ResolvedPackageFiles{}, fmt.Errorf("failed to resolve LogInsert files: %w", err)
+				return ResolvedPackageFiles{}, fmt.Errorf("failed to resolve XTrace files: %w", err)
 			}
 			resolved := ResolvedPackageFiles{ResolveType: resolveType, SourceFiles: sourceFiles, PackageDir: filepath.Dir(file)}
 			if goModPathFound {
@@ -103,7 +103,7 @@ func ResolvePackage(resolveType ResolveType, packageArgs []string) (resolved Res
 			}
 			sourceFiles, err := resolveSourceFiles(packageArgs)
 			if err != nil {
-				return ResolvedPackageFiles{}, fmt.Errorf("failed to resolve LogInsert files: %w", err)
+				return ResolvedPackageFiles{}, fmt.Errorf("failed to resolve XTrace files: %w", err)
 			}
 			resolved := ResolvedPackageFiles{ResolveType: resolveType, SourceFiles: sourceFiles, PackageDir: packageDir}
 			if found {

@@ -1,4 +1,4 @@
-package goxe
+package xtracego
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func (s LogInsert) newVariableLogStmt(name string) ast.Stmt {
+func (s XTrace) newVariableLogStmt(name string) ast.Stmt {
 	// log.Println(fmt.Sprintf(`[variable] VarName=%#v`, VarName))
 	content := fmt.Sprintf("[VAR] %s=%%#v", name)
 	return &ast.ExprStmt{
@@ -31,7 +31,7 @@ func (s LogInsert) newVariableLogStmt(name string) ast.Stmt {
 	}
 }
 
-func (s LogInsert) newVariableLogDecl(name string) *ast.GenDecl {
+func (s XTrace) newVariableLogDecl(name string) *ast.GenDecl {
 	//var _ = func() int {
 	//	log.Println(fmt.Sprintf(`VarName: %+v path/to/source.go:123:45`, VarName))
 	//	return 0
@@ -59,7 +59,7 @@ func (s LogInsert) newVariableLogDecl(name string) *ast.GenDecl {
 	}
 }
 
-func (s LogInsert) logFileVariable(c *astutil.Cursor, node *ast.GenDecl) {
+func (s XTrace) logFileVariable(c *astutil.Cursor, node *ast.GenDecl) {
 	decls := []*ast.GenDecl{}
 	for _, spec := range node.Specs {
 		spec, ok := spec.(*ast.ValueSpec)
@@ -79,27 +79,7 @@ func (s LogInsert) logFileVariable(c *astutil.Cursor, node *ast.GenDecl) {
 	}
 }
 
-func (s LogInsert) logFileConstant(c *astutil.Cursor, node *ast.GenDecl) {
-	decls := []*ast.GenDecl{}
-	for _, spec := range node.Specs {
-		spec, ok := spec.(*ast.ValueSpec)
-		if !ok {
-			continue
-		}
-		for _, name := range spec.Names {
-			if name.Name == "_" {
-				continue
-			}
-			decls = append(decls, s.newVariableLogDecl(name.Name))
-		}
-	}
-	mutable.Reverse(decls)
-	for _, decl := range decls {
-		c.InsertAfter(decl)
-	}
-}
-
-func (s LogInsert) logLocalVariable(c *astutil.Cursor, node *ast.DeclStmt) {
+func (s XTrace) logLocalVariable(c *astutil.Cursor, node *ast.DeclStmt) {
 	decl, ok := node.Decl.(*ast.GenDecl)
 	if !ok {
 		return
@@ -123,7 +103,7 @@ func (s LogInsert) logLocalVariable(c *astutil.Cursor, node *ast.DeclStmt) {
 	}
 }
 
-func (s LogInsert) logLocalAssignment(c *astutil.Cursor, node *ast.AssignStmt) {
+func (s XTrace) logLocalAssignment(c *astutil.Cursor, node *ast.AssignStmt) {
 	stmts := []ast.Stmt{}
 	for _, lexpr := range node.Lhs {
 		ident, ok := lexpr.(*ast.Ident)
@@ -138,39 +118,12 @@ func (s LogInsert) logLocalAssignment(c *astutil.Cursor, node *ast.AssignStmt) {
 	}
 }
 
-func (s LogInsert) logForInit(c *astutil.Cursor, node *ast.ForStmt) {
-	stmts := []ast.Stmt{}
-	if node.Init != nil {
-		if stmt, ok := node.Init.(*ast.AssignStmt); ok {
-			for _, lexpr := range stmt.Lhs {
-				ident, ok := lexpr.(*ast.Ident)
-				if !ok || ident.Name == "_" {
-					continue
-				}
-				stmts = append(stmts, s.newVariableLogStmt(ident.Name))
-			}
-		}
+func (s XTrace) logForVariables(c *astutil.Cursor, info *ForInfo) {
+	body := info.Body
+	vars := []ast.Stmt{}
+	for _, ident := range info.Variables() {
+		vars = append(vars, s.newVariableLogStmt(ident.Name))
 	}
-	mutable.Reverse(stmts)
-	for _, decl := range stmts {
-		c.InsertBefore(decl)
-	}
-}
-
-func (s LogInsert) logRangeKeyVal(c *astutil.Cursor, node *ast.RangeStmt) {
-	stmts := []ast.Stmt{}
-	if node.Key != nil {
-		if ident, ok := node.Key.(*ast.Ident); ok && ident.Name != "_" {
-			stmts = append(stmts, s.newVariableLogStmt(ident.Name))
-		}
-	}
-	if node.Value != nil {
-		if ident, ok := node.Value.(*ast.Ident); ok && ident.Name != "_" {
-			stmts = append(stmts, s.newVariableLogStmt(ident.Name))
-		}
-	}
-	mutable.Reverse(stmts)
-	for _, decl := range stmts {
-		c.InsertBefore(decl)
-	}
+	body.List = append(vars, body.List...)
+	c.Replace(body)
 }

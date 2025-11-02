@@ -1,4 +1,4 @@
-package goxe
+package xtracego
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func (s LogInsert) newCaseLogStmt(clause string) ast.Stmt {
+func (s XTrace) newCaseLogStmt(clause string) ast.Stmt {
 	// log.Println(fmt.Sprintf(`[CASE] case conditions:`))
 	content := fmt.Sprintf("[CASE] %s", clause)
 	return &ast.ExprStmt{
@@ -30,16 +30,17 @@ func (s LogInsert) newCaseLogStmt(clause string) ast.Stmt {
 	}
 }
 
-func (s LogInsert) logCaseClause(c *astutil.Cursor, clause *ast.CaseClause) {
+func (s XTrace) logCase(c *astutil.Cursor, info *CaseInfo) {
 	pattern := regexp.MustCompile(`\s+`)
-	frag := s.fragment(clause.Pos(), clause.Colon)
+	frag := s.fragment(info.CaseLabel())
 	frag = pattern.ReplaceAllString(frag, " ")
-	c.InsertBefore(s.newCaseLogStmt(fmt.Sprintf("%s:", frag)))
-}
-
-func (s LogInsert) logCommClause(c *astutil.Cursor, clause *ast.CommClause) {
-	pattern := regexp.MustCompile(`\s+`)
-	frag := s.fragment(clause.Pos(), clause.Colon)
-	frag = pattern.ReplaceAllString(frag, " ")
-	c.InsertBefore(s.newCaseLogStmt(fmt.Sprintf("%s:", frag)))
+	stmt := s.newCaseLogStmt(fmt.Sprintf("%s:", frag))
+	if info.Case != nil {
+		info.Case.Body = append([]ast.Stmt{stmt}, info.Case.Body...)
+		c.Replace(info.Case)
+	}
+	if info.Comm != nil {
+		info.Comm.Body = append([]ast.Stmt{stmt}, info.Comm.Body...)
+		c.Replace(info.Comm)
+	}
 }

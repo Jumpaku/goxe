@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const _ = iota
 
@@ -52,5 +54,13 @@ func (t T) method() {
 		fmt.Println("Grade C")
 	default:
 		fmt.Println("Grade F")
+	}
+
+	if true {
+		fmt.Println("if")
+	} else if false {
+		fmt.Println("else if")
+	} else {
+		fmt.Println("else")
 	}
 }

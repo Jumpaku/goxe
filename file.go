@@ -1,4 +1,4 @@
-package goxe
+package xtracego
 
 import (
 	"fmt"

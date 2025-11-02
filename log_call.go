@@ -1,15 +1,14 @@
-package goxe
+package xtracego
 
 import (
 	"fmt"
 	"go/ast"
 	"go/token"
-	"regexp"
 
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func (s LogInsert) newCallLogStmt(name string) ast.Stmt {
+func (s XTrace) newCallLogStmt(name string) ast.Stmt {
 	// log.Println(fmt.Sprintf(`[CALL] (reciever T) Method`))
 	content := fmt.Sprintf("[CALL] %s", name)
 	return &ast.ExprStmt{
@@ -30,9 +29,11 @@ func (s LogInsert) newCallLogStmt(name string) ast.Stmt {
 	}
 }
 
-func (s LogInsert) logCall(c *astutil.Cursor, funcDecl *ast.FuncDecl) {
-	pattern := regexp.MustCompile(`\s+`)
-	signature := s.fragment(funcDecl.Pos(), funcDecl.Body.Pos())
-	signature = pattern.ReplaceAllString(signature, " ")
-	c.InsertBefore(s.newCallLogStmt(fmt.Sprintf("%s", signature)))
+func (s XTrace) logCall(c *astutil.Cursor, info *FuncInfo) {
+	body := info.Body
+	body.List = append(
+		[]ast.Stmt{s.newCallLogStmt(s.fragment(info.Signature()))},
+		body.List...,
+	)
+	c.Replace(body)
 }

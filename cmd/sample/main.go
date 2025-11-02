@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Jumpaku/goxe/cmd/sample/dir"
+	"github.com/Jumpaku/xtracego/cmd/sample/dir"
 	"github.com/samber/lo"
 )
 
