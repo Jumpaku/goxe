@@ -142,3 +142,7 @@ xtracego rewrite -o=out_dir ./path/to/package
 See detailed CLI documentation:
 
 https://github.com/Jumpaku/xtracego/blob/main/docs/xtracego.md
+
+## Limitation
+
+- Comments are not handled; therefore, compiler directives (e.g., `//go:embed`) are ignored.
