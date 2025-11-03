@@ -85,7 +85,6 @@ Xtrace is execution trace information. The following traces are available:
 
 - Traces of basic statements
 - Traces of function and method calls
-- Traces of switch/select cases
 - Traces of variables and constants
 
 ## Installation
@@ -118,6 +117,6 @@ xtracego rewrite -o=out_dir ./path/to/package
 
 ### Command-line interface
 
-See the following CLI documentation:
+See detailed CLI documentation:
 
 https://github.com/Jumpaku/xtracego/blob/main/docs/xtracego.md
