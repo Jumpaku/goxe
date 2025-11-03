@@ -44,15 +44,7 @@ func (h *cliHandler) Run(input Input) error {
 func (h *cliHandler) Run_Rewrite(input Input_Rewrite) (err error) {
 	h.verbose = input.Opt_Verbose
 
-	cfg := xtracego.Config{
-		TraceStmt: input.Opt_TraceStmt,
-		TraceVar:  input.Opt_TraceVar,
-		TraceCall: input.Opt_TraceCall,
-		TraceCase: input.Opt_TraceCase,
-	}
-	cfg.GenPrefix(time.Now().Unix())
-
-	resolveType, packageArgs, _, err := xtracego.ParseArgs(input.Arg_Package)
+	resolveType, packageArgs, _, err := xtracego.ParseArgs([]string{input.Arg_Package})
 	if err != nil {
 		return fmt.Errorf("failed to parse args: %w", err)
 	}
@@ -66,9 +58,27 @@ func (h *cliHandler) Run_Rewrite(input Input_Rewrite) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to resolve package: %w", err)
 	}
+	if pkg.GoModFile == "" {
+		return fmt.Errorf("go.mod is required")
+	}
+
+	cfg := xtracego.Config{
+		TraceStmt:     input.Opt_TraceStmt,
+		TraceVar:      input.Opt_TraceVar,
+		TraceCall:     input.Opt_TraceCall,
+		ShowTimestamp: input.Opt_Timestamp,
+		ShowGoroutine: input.Opt_Goroutine,
+		ResolveType:   resolveType,
+		ModulePath:    pkg.Module,
+	}
+	cfg.GenUniqueString(time.Now().Unix())
 
 	if err := h.transformSourceFiles(cfg, pkg, outDir); err != nil {
 		return fmt.Errorf("failed to clone source files: %w", err)
+	}
+
+	if err := h.saveLibraryFiles(cfg, outDir); err != nil {
+		return fmt.Errorf("failed to save xtracego library: %w", err)
 	}
 
 	return nil
@@ -76,15 +86,8 @@ func (h *cliHandler) Run_Rewrite(input Input_Rewrite) (err error) {
 
 func (h cliHandler) Run_Build(input Input_Build) error {
 	h.verbose = input.Opt_Verbose
-	cfg := xtracego.Config{
-		TraceStmt: input.Opt_TraceStmt,
-		TraceVar:  input.Opt_TraceVar,
-		TraceCall: input.Opt_TraceCall,
-		TraceCase: input.Opt_TraceCase,
-	}
-	cfg.GenPrefix(time.Now().Unix())
 
-	resolveType, packageArgs, _, err := xtracego.ParseArgs(input.Arg_Package)
+	resolveType, packageArgs, _, err := xtracego.ParseArgs([]string{input.Arg_Package})
 	if err != nil {
 		return fmt.Errorf("failed to parse args: %w", err)
 	}
@@ -98,9 +101,27 @@ func (h cliHandler) Run_Build(input Input_Build) error {
 	if err != nil {
 		return fmt.Errorf("failed to resolve package: %w", err)
 	}
+	if pkg.GoModFile == "" {
+		return fmt.Errorf("go.mod is required")
+	}
+
+	cfg := xtracego.Config{
+		TraceStmt:     input.Opt_TraceStmt,
+		TraceVar:      input.Opt_TraceVar,
+		TraceCall:     input.Opt_TraceCall,
+		ShowTimestamp: input.Opt_Timestamp,
+		ShowGoroutine: input.Opt_Goroutine,
+		ResolveType:   resolveType,
+		ModulePath:    pkg.Module,
+	}
+	cfg.GenUniqueString(time.Now().Unix())
 
 	if err := h.transformSourceFiles(cfg, pkg, outDir); err != nil {
 		return fmt.Errorf("failed to clone source files: %w", err)
+	}
+
+	if err := h.saveLibraryFiles(cfg, outDir); err != nil {
+		return fmt.Errorf("failed to save xtracego library: %w", err)
 	}
 
 	if pkg.GoModFile != "" {
@@ -114,7 +135,7 @@ func (h cliHandler) Run_Build(input Input_Build) error {
 	{
 		args := []string{"build"}
 		args = append(args, input.Opt_GoBuildArg...)
-		args = append(args, input.Arg_Package...)
+		args = append(args, input.Arg_Package)
 		cmd := exec.Command("go", args...)
 		cmd.Dir, cmd.Stdout, cmd.Stderr, cmd.Stdin = outDir, os.Stdout, os.Stderr, os.Stdin
 		h.logf("[exec] %s [%s]", cmd.String(), cmd.Dir)
@@ -128,16 +149,7 @@ func (h cliHandler) Run_Build(input Input_Build) error {
 
 func (h cliHandler) Run_Run(input Input_Run) error {
 	h.verbose = input.Opt_Verbose
-
-	cfg := xtracego.Config{
-		TraceStmt: input.Opt_TraceStmt,
-		TraceVar:  input.Opt_TraceVar,
-		TraceCall: input.Opt_TraceCall,
-		TraceCase: input.Opt_TraceCase,
-	}
-	cfg.GenPrefix(time.Now().Unix())
-
-	resolveType, packageArgs, cliArgs, err := xtracego.ParseArgs(input.Arg_PackageAndArguments)
+	resolveType, packageArgs, _, err := xtracego.ParseArgs([]string{input.Arg_Package})
 	if err != nil {
 		return fmt.Errorf("failed to parse args: %w", err)
 	}
@@ -152,9 +164,27 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 	if err != nil {
 		return fmt.Errorf("failed to resolve package: %w", err)
 	}
+	if pkg.GoModFile == "" {
+		return fmt.Errorf("go.mod is required")
+	}
+
+	cfg := xtracego.Config{
+		TraceStmt:     input.Opt_TraceStmt,
+		TraceVar:      input.Opt_TraceVar,
+		TraceCall:     input.Opt_TraceCall,
+		ShowTimestamp: input.Opt_Timestamp,
+		ShowGoroutine: input.Opt_Goroutine,
+		ResolveType:   resolveType,
+		ModulePath:    pkg.Module,
+	}
+	cfg.GenUniqueString(time.Now().Unix())
 
 	if err := h.transformSourceFiles(cfg, pkg, outDir); err != nil {
 		return fmt.Errorf("failed to clone source files: %w", err)
+	}
+
+	if err := h.saveLibraryFiles(cfg, outDir); err != nil {
+		return fmt.Errorf("failed to save xtracego library: %w", err)
 	}
 
 	if pkg.GoModFile != "" {
@@ -183,7 +213,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 		}
 	}
 	{
-		cmd := exec.Command(execFile, cliArgs...)
+		cmd := exec.Command(execFile, input.Arg_Arguments...)
 		cmd.Stdout, cmd.Stderr, cmd.Stdin = os.Stdout, os.Stderr, os.Stdin
 		h.logf("[exec] %s", cmd.String())
 		if err := cmd.Run(); err != nil {
@@ -194,7 +224,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 	return nil
 }
 
-func (h cliHandler) transformSourceFiles(cfg xtracego.Config, pkg xtracego.ResolvedPackageFiles, outDir string) error {
+func (h *cliHandler) transformSourceFiles(cfg xtracego.Config, pkg xtracego.ResolvedPackageFiles, outDir string) error {
 	srcDir, sourceFiles := pkg.PackageDir, append([]string{}, pkg.SourceFiles...)
 	if pkg.GoModFile != "" {
 		srcDir, sourceFiles = filepath.Dir(pkg.GoModFile), append(sourceFiles, pkg.GoModFile)
@@ -244,5 +274,20 @@ func (h cliHandler) transformSourceFiles(cfg xtracego.Config, pkg xtracego.Resol
 		return fmt.Errorf("failed to copy files: %w", err)
 	}
 
+	return nil
+}
+
+func (h *cliHandler) saveLibraryFiles(cfg xtracego.Config, outDir string) (err error) {
+	dst := filepath.Join(outDir, cfg.FileName())
+	if cfg.PackageName() != "" {
+		dst = filepath.Join(outDir, cfg.PackageName(), cfg.FileName())
+	}
+	buf := bytes.NewBuffer(nil)
+	if err := xtracego.GetXtraceGo(cfg.UniqueString, buf); err != nil {
+		return fmt.Errorf("failed to generate library: %w", err)
+	}
+	if err := xtracego.SaveFile(dst, buf.String()); err != nil {
+		return fmt.Errorf("failed to save library: %w", err)
+	}
 	return nil
 }

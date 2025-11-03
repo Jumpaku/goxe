@@ -10,35 +10,41 @@ import (
 )
 
 func (s *Xtrace) newVariableLogStmt(name string, shadowed bool) ast.Stmt {
-	// log.Println(fmt.Sprintf(`[VAR] VarName=%#v`, VarName))
-	// log.Println(fmt.Sprintf(`[VAR] VarName=<shadowed>`))
-	content := fmt.Sprintf("[VAR] %s=%%#v", name)
-	args := []ast.Expr{
-		&ast.BasicLit{
-			Kind:  token.STRING,
-			Value: fmt.Sprintf("%q", content),
-		},
-		&ast.Ident{Name: name},
-	}
+	// PrintlnVariable("VarName", VarName))
+	// PrintlnVariable("VarName", "<shadowed>"))
 	if shadowed {
-		content = fmt.Sprintf("[VAR] %s=<shadowed>", name)
-		args = []ast.Expr{
-			&ast.BasicLit{
-				Kind:  token.STRING,
-				Value: fmt.Sprintf("%q", content),
-			},
-		}
-	}
-	return &ast.ExprStmt{
-		X: &ast.CallExpr{
-			Fun: ast.NewIdent(s.Prefix + "_log.Println"),
-			Args: []ast.Expr{
-				&ast.CallExpr{
-					Fun:  ast.NewIdent(s.Prefix + "_fmt.Sprintf"),
-					Args: args,
+		return &ast.ExprStmt{
+			X: &ast.CallExpr{
+				Fun: ast.NewIdent(s.IdentifierPrintlnVariable()),
+				Args: []ast.Expr{
+					&ast.BasicLit{
+						Kind:  token.STRING,
+						Value: fmt.Sprintf("%q", name),
+					},
+					&ast.BasicLit{
+						Kind:  token.STRING,
+						Value: fmt.Sprintf("%q", "<shadowed>"),
+					},
+					&ast.Ident{Name: s.IdentShowTimestamp()},
+					&ast.Ident{Name: s.IdentShowGoroutine()},
 				},
 			},
-		},
+		}
+	} else {
+		return &ast.ExprStmt{
+			X: &ast.CallExpr{
+				Fun: ast.NewIdent(s.IdentifierPrintlnVariable()),
+				Args: []ast.Expr{
+					&ast.BasicLit{
+						Kind:  token.STRING,
+						Value: fmt.Sprintf("%q", name),
+					},
+					&ast.Ident{Name: name},
+					&ast.Ident{Name: s.IdentShowTimestamp()},
+					&ast.Ident{Name: s.IdentShowGoroutine()},
+				},
+			},
+		}
 	}
 }
 

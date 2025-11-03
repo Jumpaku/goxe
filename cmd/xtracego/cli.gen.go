@@ -41,8 +41,9 @@ func Run(handler CLIHandler, args []string) error {
 }
 
 type Input struct {
+	Opt_Goroutine bool
+	Opt_Timestamp bool
 	Opt_TraceCall bool
-	Opt_TraceCase bool
 	Opt_TraceStmt bool
 	Opt_TraceVar  bool
 	Opt_Verbose   bool
@@ -54,8 +55,9 @@ type Input struct {
 }
 
 func (input *Input) resolveInput(subcommand, options, arguments []string) {
-	*input = Input{Opt_TraceCall: true,
-		Opt_TraceCase: true,
+	*input = Input{Opt_Goroutine: true,
+		Opt_Timestamp: true,
+		Opt_TraceCall: true,
 		Opt_TraceStmt: true,
 		Opt_TraceVar:  true,
 		Opt_Verbose:   false,
@@ -69,6 +71,48 @@ func (input *Input) resolveInput(subcommand, options, arguments []string) {
 		func(...any) {}(optName, lit, cut)
 
 		switch optName {
+		case "-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = v.(bool)
+			}
+		case "-no-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = !v.(bool)
+			}
+
+		case "-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = v.(bool)
+			}
+		case "-no-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = !v.(bool)
+			}
+
 		case "-trace-call":
 			if !cut {
 				lit = "true"
@@ -88,27 +132,6 @@ func (input *Input) resolveInput(subcommand, options, arguments []string) {
 				return
 			} else {
 				input.Opt_TraceCall = !v.(bool)
-			}
-
-		case "-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = v.(bool)
-			}
-		case "-no-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = !v.(bool)
 			}
 
 		case "-trace-stmt":
@@ -177,12 +200,13 @@ func (input *Input) resolveInput(subcommand, options, arguments []string) {
 type Input_Build struct {
 	Opt_BuildDirectory string
 	Opt_GoBuildArg     []string
+	Opt_Goroutine      bool
+	Opt_Timestamp      bool
 	Opt_TraceCall      bool
-	Opt_TraceCase      bool
 	Opt_TraceStmt      bool
 	Opt_TraceVar       bool
 	Opt_Verbose        bool
-	Arg_Package        []string
+	Arg_Package        string
 	Subcommand         []string
 	Options            []string
 	Arguments          []string
@@ -193,8 +217,9 @@ type Input_Build struct {
 func (input *Input_Build) resolveInput(subcommand, options, arguments []string) {
 	*input = Input_Build{Opt_BuildDirectory: "",
 		Opt_GoBuildArg: []string{},
+		Opt_Goroutine:  true,
+		Opt_Timestamp:  true,
 		Opt_TraceCall:  true,
-		Opt_TraceCase:  true,
 		Opt_TraceStmt:  true,
 		Opt_TraceVar:   true,
 		Opt_Verbose:    false,
@@ -232,6 +257,48 @@ func (input *Input_Build) resolveInput(subcommand, options, arguments []string) 
 				input.Opt_GoBuildArg = append(input.Opt_GoBuildArg, v.([]string)[0])
 			}
 
+		case "-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = v.(bool)
+			}
+		case "-no-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = !v.(bool)
+			}
+
+		case "-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = v.(bool)
+			}
+		case "-no-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = !v.(bool)
+			}
+
 		case "-trace-call":
 			if !cut {
 				lit = "true"
@@ -251,27 +318,6 @@ func (input *Input_Build) resolveInput(subcommand, options, arguments []string) 
 				return
 			} else {
 				input.Opt_TraceCall = !v.(bool)
-			}
-
-		case "-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = v.(bool)
-			}
-		case "-no-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = !v.(bool)
 			}
 
 		case "-trace-stmt":
@@ -335,27 +381,27 @@ func (input *Input_Build) resolveInput(subcommand, options, arguments []string) 
 
 	expectedArgs := 1
 	func(...any) {}(expectedArgs)
-	if len(input.Arguments) < 0 {
-		input.ErrorMessage = fmt.Sprintf("too few arguments: required at least %d, got %d", expectedArgs-1, len(input.Arguments))
+	if len(input.Arguments) <= 0 {
+		input.ErrorMessage = fmt.Sprintf("too few arguments: required %d, got %d", expectedArgs, len(input.Arguments))
 		return
 	}
-
-	if v, err := parseValue("[]string", input.Arguments[0:]...); err != nil {
-		input.ErrorMessage = fmt.Sprintf("values [%s] are not assignable to arguments at [%d:]", strings.Join(input.Arguments[0:], " "), 0)
+	if v, err := parseValue("string", input.Arguments[0:]...); err != nil {
+		input.ErrorMessage = fmt.Sprintf("value %q is not assignable to argument at [%d]", input.Arguments[0], 0)
 		return
 	} else {
-		input.Arg_Package = v.([]string)
+		input.Arg_Package = v.(string)
 	}
 }
 
 type Input_Rewrite struct {
+	Opt_Goroutine       bool
 	Opt_OutputDirectory string
+	Opt_Timestamp       bool
 	Opt_TraceCall       bool
-	Opt_TraceCase       bool
 	Opt_TraceStmt       bool
 	Opt_TraceVar        bool
 	Opt_Verbose         bool
-	Arg_Package         []string
+	Arg_Package         string
 	Subcommand          []string
 	Options             []string
 	Arguments           []string
@@ -364,15 +410,16 @@ type Input_Rewrite struct {
 }
 
 func (input *Input_Rewrite) resolveInput(subcommand, options, arguments []string) {
-	*input = Input_Rewrite{Opt_OutputDirectory: "",
-		Opt_TraceCall: true,
-		Opt_TraceCase: true,
-		Opt_TraceStmt: true,
-		Opt_TraceVar:  true,
-		Opt_Verbose:   false,
-		Subcommand:    subcommand,
-		Options:       options,
-		Arguments:     arguments,
+	*input = Input_Rewrite{Opt_Goroutine: true,
+		Opt_OutputDirectory: "",
+		Opt_Timestamp:       true,
+		Opt_TraceCall:       true,
+		Opt_TraceStmt:       true,
+		Opt_TraceVar:        true,
+		Opt_Verbose:         false,
+		Subcommand:          subcommand,
+		Options:             options,
+		Arguments:           arguments,
 	}
 
 	for _, arg := range input.Options {
@@ -380,6 +427,27 @@ func (input *Input_Rewrite) resolveInput(subcommand, options, arguments []string
 		func(...any) {}(optName, lit, cut)
 
 		switch optName {
+		case "-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = v.(bool)
+			}
+		case "-no-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = !v.(bool)
+			}
+
 		case "-output-directory", "-o":
 			if !cut {
 				input.ErrorMessage = fmt.Sprintf("value is not specified to option %q", optName)
@@ -392,6 +460,27 @@ func (input *Input_Rewrite) resolveInput(subcommand, options, arguments []string
 				input.Opt_OutputDirectory = v.(string)
 			}
 
+		case "-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = v.(bool)
+			}
+		case "-no-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = !v.(bool)
+			}
+
 		case "-trace-call":
 			if !cut {
 				lit = "true"
@@ -411,27 +500,6 @@ func (input *Input_Rewrite) resolveInput(subcommand, options, arguments []string
 				return
 			} else {
 				input.Opt_TraceCall = !v.(bool)
-			}
-
-		case "-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = v.(bool)
-			}
-		case "-no-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = !v.(bool)
 			}
 
 		case "-trace-stmt":
@@ -495,38 +563,40 @@ func (input *Input_Rewrite) resolveInput(subcommand, options, arguments []string
 
 	expectedArgs := 1
 	func(...any) {}(expectedArgs)
-	if len(input.Arguments) < 0 {
-		input.ErrorMessage = fmt.Sprintf("too few arguments: required at least %d, got %d", expectedArgs-1, len(input.Arguments))
+	if len(input.Arguments) <= 0 {
+		input.ErrorMessage = fmt.Sprintf("too few arguments: required %d, got %d", expectedArgs, len(input.Arguments))
 		return
 	}
-
-	if v, err := parseValue("[]string", input.Arguments[0:]...); err != nil {
-		input.ErrorMessage = fmt.Sprintf("values [%s] are not assignable to arguments at [%d:]", strings.Join(input.Arguments[0:], " "), 0)
+	if v, err := parseValue("string", input.Arguments[0:]...); err != nil {
+		input.ErrorMessage = fmt.Sprintf("value %q is not assignable to argument at [%d]", input.Arguments[0], 0)
 		return
 	} else {
-		input.Arg_Package = v.([]string)
+		input.Arg_Package = v.(string)
 	}
 }
 
 type Input_Run struct {
-	Opt_GoBuildArg          []string
-	Opt_TraceCall           bool
-	Opt_TraceCase           bool
-	Opt_TraceStmt           bool
-	Opt_TraceVar            bool
-	Opt_Verbose             bool
-	Arg_PackageAndArguments []string
-	Subcommand              []string
-	Options                 []string
-	Arguments               []string
+	Opt_GoBuildArg []string
+	Opt_Goroutine  bool
+	Opt_Timestamp  bool
+	Opt_TraceCall  bool
+	Opt_TraceStmt  bool
+	Opt_TraceVar   bool
+	Opt_Verbose    bool
+	Arg_Package    string
+	Arg_Arguments  []string
+	Subcommand     []string
+	Options        []string
+	Arguments      []string
 
 	ErrorMessage string
 }
 
 func (input *Input_Run) resolveInput(subcommand, options, arguments []string) {
 	*input = Input_Run{Opt_GoBuildArg: []string{},
+		Opt_Goroutine: true,
+		Opt_Timestamp: true,
 		Opt_TraceCall: true,
-		Opt_TraceCase: true,
 		Opt_TraceStmt: true,
 		Opt_TraceVar:  true,
 		Opt_Verbose:   false,
@@ -552,6 +622,48 @@ func (input *Input_Run) resolveInput(subcommand, options, arguments []string) {
 				input.Opt_GoBuildArg = append(input.Opt_GoBuildArg, v.([]string)[0])
 			}
 
+		case "-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = v.(bool)
+			}
+		case "-no-goroutine":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Goroutine = !v.(bool)
+			}
+
+		case "-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = v.(bool)
+			}
+		case "-no-timestamp":
+			if !cut {
+				lit = "true"
+			}
+			if v, err := parseValue("bool", lit); err != nil {
+				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
+				return
+			} else {
+				input.Opt_Timestamp = !v.(bool)
+			}
+
 		case "-trace-call":
 			if !cut {
 				lit = "true"
@@ -571,27 +683,6 @@ func (input *Input_Run) resolveInput(subcommand, options, arguments []string) {
 				return
 			} else {
 				input.Opt_TraceCall = !v.(bool)
-			}
-
-		case "-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = v.(bool)
-			}
-		case "-no-trace-case":
-			if !cut {
-				lit = "true"
-			}
-			if v, err := parseValue("bool", lit); err != nil {
-				input.ErrorMessage = fmt.Sprintf("value %q is not assignable to option %q", lit, optName)
-				return
-			} else {
-				input.Opt_TraceCase = !v.(bool)
 			}
 
 		case "-trace-stmt":
@@ -653,18 +744,29 @@ func (input *Input_Run) resolveInput(subcommand, options, arguments []string) {
 		}
 	}
 
-	expectedArgs := 1
+	expectedArgs := 2
 	func(...any) {}(expectedArgs)
-	if len(input.Arguments) < 0 {
+	if len(input.Arguments) <= 0 {
+		input.ErrorMessage = fmt.Sprintf("too few arguments: required %d, got %d", expectedArgs, len(input.Arguments))
+		return
+	}
+	if v, err := parseValue("string", input.Arguments[0:]...); err != nil {
+		input.ErrorMessage = fmt.Sprintf("value %q is not assignable to argument at [%d]", input.Arguments[0], 0)
+		return
+	} else {
+		input.Arg_Package = v.(string)
+	}
+
+	if len(input.Arguments) < 1 {
 		input.ErrorMessage = fmt.Sprintf("too few arguments: required at least %d, got %d", expectedArgs-1, len(input.Arguments))
 		return
 	}
 
-	if v, err := parseValue("[]string", input.Arguments[0:]...); err != nil {
-		input.ErrorMessage = fmt.Sprintf("values [%s] are not assignable to arguments at [%d:]", strings.Join(input.Arguments[0:], " "), 0)
+	if v, err := parseValue("[]string", input.Arguments[1:]...); err != nil {
+		input.ErrorMessage = fmt.Sprintf("values [%s] are not assignable to arguments at [%d:]", strings.Join(input.Arguments[1:], " "), 1)
 		return
 	} else {
-		input.Arg_PackageAndArguments = v.([]string)
+		input.Arg_Arguments = v.([]string)
 	}
 }
 func resolveArgs(args []string) (subcommandPath []string, options []string, arguments []string) {
@@ -766,16 +868,16 @@ func GetProgram() string {
 func GetDoc(subcommands []string) string {
 	switch strings.Join(subcommands, " ") {
 	case "":
-		return "xtracego \n\n    Syntax:\n        $ xtracego  [<option>]...\n\n    Options:\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling functions and methods or not.\n\n        -trace-case[=<boolean>]  (default=true),\n        -no-trace-case[=<boolean>]:\n            Whether trace cases of switch and select statements or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Subcommands:\n        build:\n            Rewrites the source files in the specified package and places these files in the build directory.\n            Executes go build at the specified directory with the given arguments.\n\n        rewrite:\n            Rewrites the source files in the specified package and places these files in the output directory.\n            The rewritten files includes Go code to log trace information.\n            If go.mod of the module of the package is found, it is copied to the output directory.\n\n        run:\n            Rewrites the source files in the specified package and places these files in a temporary directory.\n            Executes go build at the temporary directory with the given arguments.\n            Thereafter, the built executable file is executed at the current working directory.\n\n\n"
+		return "xtracego \n\n    Syntax:\n        $ xtracego  [<option>]...\n\n    Options:\n        -goroutine[=<boolean>]  (default=true),\n        -no-goroutine[=<boolean>]:\n            Whether show goroutine ID or not.\n\n        -timestamp[=<boolean>]  (default=true),\n        -no-timestamp[=<boolean>]:\n            Whether show timestamp or not.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling and returning functions and methods or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Subcommands:\n        build:\n            Rewrites the source files in the specified package and places these files in the build directory.\n            Executes go build at the specified directory with the given arguments.\n\n        rewrite:\n            Rewrites the source files in the specified package and places these files in the output directory.\n            The rewritten files includes Go code to log trace information.\n            If go.mod of the module of the package is found, it is copied to the output directory.\n\n        run:\n            Rewrites the source files in the specified package and places these files in a temporary directory.\n            Executes go build at the temporary directory with the given arguments.\n            Thereafter, the built executable file is executed at the current working directory.\n\n\n"
 
 	case "build":
-		return "xtracego build\n\n    Description:\n        Rewrites the source files in the specified package and places these files in the build directory.\n        Executes go build at the specified directory with the given arguments.\n\n    Syntax:\n        $ xtracego build [<option>|<argument>]... [-- [<argument>]...]\n\n    Options:\n        -build-directory=<string>, -o=<string>  (default=\"\"):\n            The source files included the specified package are rewritten and placed in this directory which is used as a current working directory to execute go build.\n            This option is required.\n\n        -go-build-arg=<string>, -a=<string>  (default=\"\"):\n            Arguments to be passed to the go build command.\n            If there are multiple arguments for go build, this option can be specified multiple times.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling functions and methods or not.\n\n        -trace-case[=<boolean>]  (default=true),\n        -no-trace-case[=<boolean>]:\n            Whether trace cases of switch and select statements or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Arguments:\n        1. [<package:string>]...\n            Path to a local directory of the main package or paths to source files in the package to be rewritten.\n\n\n"
+		return "xtracego build\n\n    Description:\n        Rewrites the source files in the specified package and places these files in the build directory.\n        Executes go build at the specified directory with the given arguments.\n\n    Syntax:\n        $ xtracego build [<option>|<argument>]... [-- [<argument>]...]\n\n    Options:\n        -build-directory=<string>, -o=<string>  (default=\"\"):\n            The source files included the specified package are rewritten and placed in this directory which is used as a current working directory to execute go build.\n            This option is required.\n\n        -go-build-arg=<string>, -a=<string>  (default=\"\"):\n            Arguments to be passed to the go build command.\n            If there are multiple arguments for go build, this option can be specified multiple times.\n\n        -goroutine[=<boolean>]  (default=true),\n        -no-goroutine[=<boolean>]:\n            Whether show goroutine ID or not.\n\n        -timestamp[=<boolean>]  (default=true),\n        -no-timestamp[=<boolean>]:\n            Whether show timestamp or not.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling and returning functions and methods or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Arguments:\n        1.  <package:string>\n            Path to a local directory of the main package to be rewritten.\n\n\n"
 
 	case "rewrite":
-		return "xtracego rewrite\n\n    Description:\n        Rewrites the source files in the specified package and places these files in the output directory.\n        The rewritten files includes Go code to log trace information.\n        If go.mod of the module of the package is found, it is copied to the output directory.\n\n    Syntax:\n        $ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]\n\n    Options:\n        -output-directory=<string>, -o=<string>  (default=\"\"):\n            Output directory to place the rewritten source files of the package.\n            This option is required.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling functions and methods or not.\n\n        -trace-case[=<boolean>]  (default=true),\n        -no-trace-case[=<boolean>]:\n            Whether trace cases of switch and select statements or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Arguments:\n        1. [<package:string>]...\n            Path to a local directory of the main package or paths to source files in the package to be rewritten.\n\n\n"
+		return "xtracego rewrite\n\n    Description:\n        Rewrites the source files in the specified package and places these files in the output directory.\n        The rewritten files includes Go code to log trace information.\n        If go.mod of the module of the package is found, it is copied to the output directory.\n\n    Syntax:\n        $ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]\n\n    Options:\n        -goroutine[=<boolean>]  (default=true),\n        -no-goroutine[=<boolean>]:\n            Whether show goroutine ID or not.\n\n        -output-directory=<string>, -o=<string>  (default=\"\"):\n            Output directory to place the rewritten source files of the package.\n            This option is required.\n\n        -timestamp[=<boolean>]  (default=true),\n        -no-timestamp[=<boolean>]:\n            Whether show timestamp or not.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling and returning functions and methods or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Arguments:\n        1.  <package:string>\n            Path to a local directory of the main package to be rewritten.\n\n\n"
 
 	case "run":
-		return "xtracego run\n\n    Description:\n        Rewrites the source files in the specified package and places these files in a temporary directory.\n        Executes go build at the temporary directory with the given arguments.\n        Thereafter, the built executable file is executed at the current working directory.\n\n    Syntax:\n        $ xtracego run [<option>|<argument>]... [-- [<argument>]...]\n\n    Options:\n        -go-build-arg=<string>, -a=<string>  (default=\"\"):\n            Arguments to be passed to the go run command.\n            If there are multiple arguments for go build, this option can be specified multiple times.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling functions and methods or not.\n\n        -trace-case[=<boolean>]  (default=true),\n        -no-trace-case[=<boolean>]:\n            Whether trace cases of switch and select statements or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Arguments:\n        1. [<package_and_arguments:string>]...\n            Path to a local directory of the main package or paths to source files in the package to be rewritten, followed by arguments to be passed to the main function.\n            If a local directory is given as the first argument, the rest of the arguments is treated as arguments to the main function.\n            If source files, each of which ends with '.go', are given as the first arguments, the rest of the arguments is treated as arguments to the main function.\n            Arguments after the first '--' are treated as arguments to the main function.\n            * Example 1:\n              xtracego run /path/to/main/package arg1 arg2 --> package=/path/to/main/package, arguments=[arg1, arg2]\n            * Example 2:\n              xtracego run ./path/to/main/package arg1 arg2 --> package=./path/to/main/package, arguments=[arg1, arg2]\n            * Example 3:\n              xtracego run ./path/to/main/package -- arg1 arg2 --> package=./path/to/main/package, arguments=[arg1, arg2]\n            * Example 4:\n              xtracego run ./source.go ./files.go ./arg.go arg1 arg2 --> package=[./source.go, ./files.go, ./arg.go], arguments=[arg1, arg2] \n            * Example 5:\n              xtracego run ./source.go ./files.go -- ./arg.go arg1 arg2 --> package=[./source.go, ./files.go], arguments=[./arg.go, arg1, arg2] \n\n\n"
+		return "xtracego run\n\n    Description:\n        Rewrites the source files in the specified package and places these files in a temporary directory.\n        Executes go build at the temporary directory with the given arguments.\n        Thereafter, the built executable file is executed at the current working directory.\n\n    Syntax:\n        $ xtracego run [<option>|<argument>]... [-- [<argument>]...]\n\n    Options:\n        -go-build-arg=<string>, -a=<string>  (default=\"\"):\n            Arguments to be passed to the go run command.\n            If there are multiple arguments for go build, this option can be specified multiple times.\n\n        -goroutine[=<boolean>]  (default=true),\n        -no-goroutine[=<boolean>]:\n            Whether show goroutine ID or not.\n\n        -timestamp[=<boolean>]  (default=true),\n        -no-timestamp[=<boolean>]:\n            Whether show timestamp or not.\n\n        -trace-call[=<boolean>]  (default=true),\n        -no-trace-call[=<boolean>]:\n            Whether trace calling and returning functions and methods or not.\n\n        -trace-stmt[=<boolean>]  (default=true),\n        -no-trace-stmt[=<boolean>]:\n            Whether trace basic statements or not.\n\n        -trace-var[=<boolean>]  (default=true),\n        -no-trace-var[=<boolean>]:\n            Whether trace variables and constants or not.\n\n        -verbose[=<boolean>], -v[=<boolean>]  (default=false):\n            Whether to output verbose messages or not.\n\n    Arguments:\n        1.  <package:string>\n            Path to a local directory of the main package to be rewritten, followed by arguments to be passed to the main function.\n\n        2. [<arguments:string>]...\n            Arguments to be passed to the main function.\n\n\n"
 	default:
 		panic(fmt.Sprintf(`invalid subcommands: %v`, subcommands))
 	}

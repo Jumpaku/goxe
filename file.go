@@ -40,3 +40,21 @@ func TransformFile(src, dst string, transform func(r io.Reader, w io.Writer) (er
 	}
 	return nil
 }
+
+func SaveFile(dst string, fileContent string) error {
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return fmt.Errorf("failed to create directory for %s: %w", dst, err)
+	}
+
+	writer, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %w", dst, err)
+	}
+	defer writer.Close()
+
+	if _, err := writer.WriteString(fileContent); err != nil {
+		return fmt.Errorf("failed to write to %s: %w", dst, err)
+	}
+
+	return nil
+}

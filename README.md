@@ -40,26 +40,26 @@ xtracego run ./examples/fizzbuzz
 Got trace output from stderr:
 
 ```
-2025/11/03 02:16:59 const N = 20 ........................ [ /path/to/examples/fizzbuzz/main.go:5:7 ]
-2025/11/03 02:16:59 [VAR] N=20
-2025/11/03 02:16:59 [CALL] func main() 
-2025/11/03 02:16:59     for i := 1; i <= N; i++ { ....... [ /path/to/examples/fizzbuzz/main.go:8:2 ]
-2025/11/03 02:16:59 [VAR] i=1
-2025/11/03 02:16:59         if i%15 == 0 { .............. [ /path/to/examples/fizzbuzz/main.go:9:3 ]
-2025/11/03 02:16:59         } else if i%3 == 0 { ........ [ /path/to/examples/fizzbuzz/main.go:11:10 ]
-2025/11/03 02:16:59         } else if i%5 == 0 { ........ [ /path/to/examples/fizzbuzz/main.go:13:10 ]
-2025/11/03 02:16:59         } else { .................... [ /path/to/examples/fizzbuzz/main.go:15:3 ]
-2025/11/03 02:16:59             fmt.Println(i) .......... [ /path/to/examples/fizzbuzz/main.go:16:4 ]
-2025/11/03 02:16:59 [VAR] i=2
-2025/11/03 02:16:59         if i%15 == 0 { .............. [ /path/to/examples/fizzbuzz/main.go:9:3 ]
-2025/11/03 02:16:59         } else if i%3 == 0 { ........ [ /path/to/examples/fizzbuzz/main.go:11:10 ]
-2025/11/03 02:16:59         } else if i%5 == 0 { ........ [ /path/to/examples/fizzbuzz/main.go:13:10 ]
-2025/11/03 02:16:59         } else { .................... [ /path/to/examples/fizzbuzz/main.go:15:3 ]
-2025/11/03 02:16:59             fmt.Println(i) .......... [ /path/to/examples/fizzbuzz/main.go:16:4 ]
-2025/11/03 02:16:59 [VAR] i=3
-2025/11/03 02:16:59         if i%15 == 0 { .............. [ /path/to/examples/fizzbuzz/main.go:9:3 ]
-2025/11/03 02:16:59         } else if i%3 == 0 { ........ [ /path/to/examples/fizzbuzz/main.go:11:10 ]
-2025/11/03 02:16:59             fmt.Println("Fizz") ..... [ /path/to/examples/fizzbuzz/main.go:12:4 ]
+2025-11-03T11:55:22Z [ 1] :const N = 20 ............................. [ /path/to/examples/fizzbuzz/main.go:6:7 ]
+2025-11-03T11:55:22Z [ 1] :[VAR] N=20
+2025-11-03T11:55:22Z [ 1] :[CALL] (main.main)
+2025-11-03T11:55:22Z [ 1] :    for i := 1; i <= N; i++ { ............ [ /path/to/examples/fizzbuzz/main.go:9:2 ]
+2025-11-03T11:55:22Z [ 1] :[VAR] i=1
+2025-11-03T11:55:22Z [ 1] :        if i%15 == 0 { ................... [ /path/to/examples/fizzbuzz/main.go:10:3 ]
+2025-11-03T11:55:22Z [ 1] :        } else if i%3 == 0 { ............. [ /path/to/examples/fizzbuzz/main.go:12:10 ]
+2025-11-03T11:55:22Z [ 1] :        } else if i%5 == 0 { ............. [ /path/to/examples/fizzbuzz/main.go:14:10 ]
+2025-11-03T11:55:22Z [ 1] :        } else { ......................... [ /path/to/examples/fizzbuzz/main.go:16:3 ]
+2025-11-03T11:55:22Z [ 1] :            fmt.Println(i) ............... [ /path/to/examples/fizzbuzz/main.go:17:4 ]
+2025-11-03T11:55:22Z [ 1] :[VAR] i=2
+2025-11-03T11:55:22Z [ 1] :        if i%15 == 0 { ................... [ /path/to/examples/fizzbuzz/main.go:10:3 ]
+2025-11-03T11:55:22Z [ 1] :        } else if i%3 == 0 { ............. [ /path/to/examples/fizzbuzz/main.go:12:10 ]
+2025-11-03T11:55:22Z [ 1] :        } else if i%5 == 0 { ............. [ /path/to/examples/fizzbuzz/main.go:14:10 ]
+2025-11-03T11:55:22Z [ 1] :        } else { ......................... [ /path/to/examples/fizzbuzz/main.go:16:3 ]
+2025-11-03T11:55:22Z [ 1] :            fmt.Println(i) ............... [ /path/to/examples/fizzbuzz/main.go:17:4 ]
+2025-11-03T11:55:22Z [ 1] :[VAR] i=3
+2025-11-03T11:55:22Z [ 1] :        if i%15 == 0 { ................... [ /path/to/examples/fizzbuzz/main.go:10:3 ]
+2025-11-03T11:55:22Z [ 1] :        } else if i%3 == 0 { ............. [ /path/to/examples/fizzbuzz/main.go:12:10 ]
+2025-11-03T11:55:22Z [ 1] :            fmt.Println("Fizz") .......... [ /path/to/examples/fizzbuzz/main.go:13:4 ]
 ...
 ```
 

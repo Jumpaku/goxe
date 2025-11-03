@@ -27,14 +27,21 @@ options:
     propagates: true
     negation: true
     description: |
-      Whether trace calling functions and methods or not.
-  -trace-case:
+      Whether trace calling and returning functions and methods or not.
+  -timestamp:
     type: boolean
     default: 'true'
     propagates: true
     negation: true
     description: |
-      Whether trace cases of switch and select statements or not.
+      Whether show timestamp or not.
+  -goroutine:
+    type: boolean
+    default: 'true'
+    propagates: true
+    negation: true
+    description: |
+      Whether show goroutine ID or not.
 
 subcommands:
 
@@ -51,9 +58,8 @@ subcommands:
           This option is required.
     arguments:
       - name: package
-        variadic: true
         description: |
-          Path to a local directory of the main package or paths to source files in the package to be rewritten.
+          Path to a local directory of the main package to be rewritten.
 
   build:
     description: |
@@ -73,9 +79,8 @@ subcommands:
           This option is required.
     arguments:
       - name: package
-        variadic: true
         description: |
-          Path to a local directory of the main package or paths to source files in the package to be rewritten.
+          Path to a local directory of the main package to be rewritten.
 
   run:
     description: |
@@ -90,21 +95,10 @@ subcommands:
           Arguments to be passed to the go run command.
           If there are multiple arguments for go build, this option can be specified multiple times.
     arguments:
-      - name: package_and_arguments
+      - name: package
+        description: |
+          Path to a local directory of the main package to be rewritten, followed by arguments to be passed to the main function.
+      - name: arguments
         variadic: true
         description: |
-          Path to a local directory of the main package or paths to source files in the package to be rewritten, followed by arguments to be passed to the main function.
-          If a local directory is given as the first argument, the rest of the arguments is treated as arguments to the main function.
-          If source files, each of which ends with '.go', are given as the first arguments, the rest of the arguments is treated as arguments to the main function.
-          Arguments after the first '--' are treated as arguments to the main function.
-          * Example 1:
-            xtracego run /path/to/main/package arg1 arg2 --> package=/path/to/main/package, arguments=[arg1, arg2]
-          * Example 2:
-            xtracego run ./path/to/main/package arg1 arg2 --> package=./path/to/main/package, arguments=[arg1, arg2]
-          * Example 3:
-            xtracego run ./path/to/main/package -- arg1 arg2 --> package=./path/to/main/package, arguments=[arg1, arg2]
-          * Example 4:
-            xtracego run ./source.go ./files.go ./arg.go arg1 arg2 --> package=[./source.go, ./files.go, ./arg.go], arguments=[arg1, arg2] 
-          * Example 5:
-            xtracego run ./source.go ./files.go -- ./arg.go arg1 arg2 --> package=[./source.go, ./files.go], arguments=[./arg.go, arg1, arg2] 
-          
+          Arguments to be passed to the main function.

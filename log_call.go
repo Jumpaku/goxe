@@ -1,30 +1,32 @@
 package xtracego
 
 import (
-	"fmt"
 	"go/ast"
-	"go/token"
-	"strings"
 
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func (s *Xtrace) newCallLogStmt(name string) ast.Stmt {
-	// log.Println(fmt.Sprintf(`[CALL] (reciever T) Method`))
-	content := fmt.Sprintf("[CALL] %s", name)
+func (s *Xtrace) newCallLogStmt() ast.Stmt {
+	// PrintlnCall("[CALL] <signature>")
 	return &ast.ExprStmt{
 		X: &ast.CallExpr{
-			Fun: ast.NewIdent(s.Prefix + "_log.Println"),
+			Fun: ast.NewIdent(s.IdentifierPrintlnCall()),
 			Args: []ast.Expr{
-				&ast.CallExpr{
-					Fun: ast.NewIdent(s.Prefix + "_fmt.Sprintf"),
-					Args: []ast.Expr{
-						&ast.BasicLit{
-							Kind:  token.STRING,
-							Value: fmt.Sprintf("%q", strings.ReplaceAll(content, "%", "%%")),
-						},
-					},
-				},
+				&ast.Ident{Name: s.IdentShowTimestamp()},
+				&ast.Ident{Name: s.IdentShowGoroutine()},
+			},
+		},
+	}
+}
+
+func (s *Xtrace) newReturnLogStmt() ast.Stmt {
+	// PrintlnReturn("[RETURN] <signature>")
+	return &ast.DeferStmt{
+		Call: &ast.CallExpr{
+			Fun: ast.NewIdent(s.IdentifierPrintlnReturn()),
+			Args: []ast.Expr{
+				&ast.Ident{Name: s.IdentShowTimestamp()},
+				&ast.Ident{Name: s.IdentShowGoroutine()},
 			},
 		},
 	}
@@ -36,7 +38,10 @@ func (s *Xtrace) logCall(c *astutil.Cursor, info *FuncInfo) {
 	}
 	body := info.Body
 	body.List = append(
-		[]ast.Stmt{s.newCallLogStmt(s.fragment(info.Signature()))},
+		[]ast.Stmt{
+			s.newCallLogStmt(),
+			s.newReturnLogStmt(),
+		},
 		body.List...,
 	)
 	c.Replace(body)

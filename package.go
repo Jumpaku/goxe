@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -24,6 +25,7 @@ type ResolvedPackageFiles struct {
 	SourceFiles []string
 	GoModFile   string
 	PackageDir  string
+	Module      string
 }
 
 func (pkg ResolvedPackageFiles) IsModule() bool {
@@ -77,7 +79,7 @@ func ResolvePackage(resolveType ResolveType, packageArgs []string) (resolved Res
 			if err != nil {
 				return ResolvedPackageFiles{}, fmt.Errorf("failed to resolve %q: %w", packageArgs[0], err)
 			}
-			goModPath, goModPathFound, err := findGoMod(filepath.Dir(file))
+			goModPath, moduleName, goModPathFound, err := findGoMod(filepath.Dir(file))
 			if err != nil {
 				return ResolvedPackageFiles{}, fmt.Errorf("failed to find go.mod: %w", err)
 			}
@@ -89,6 +91,9 @@ func ResolvePackage(resolveType ResolveType, packageArgs []string) (resolved Res
 			if goModPathFound {
 				resolved.GoModFile = goModPath
 			}
+			if moduleName != "" {
+				resolved.Module = moduleName
+			}
 			return resolved, nil
 		}
 	case ResolveTypePackageDirectory:
@@ -97,7 +102,7 @@ func ResolvePackage(resolveType ResolveType, packageArgs []string) (resolved Res
 				return ResolvedPackageFiles{}, fmt.Errorf("no package specified")
 			}
 			packageDir := packageArgs[0]
-			goModPath, found, err := findGoMod(packageDir)
+			goModPath, moduleName, found, err := findGoMod(packageDir)
 			if err != nil {
 				return ResolvedPackageFiles{}, fmt.Errorf("failed to find go.mod: %w", err)
 			}
@@ -108,6 +113,9 @@ func ResolvePackage(resolveType ResolveType, packageArgs []string) (resolved Res
 			resolved := ResolvedPackageFiles{ResolveType: resolveType, SourceFiles: sourceFiles, PackageDir: packageDir}
 			if found {
 				resolved.GoModFile = goModPath
+			}
+			if moduleName != "" {
+				resolved.Module = moduleName
 			}
 			return resolved, nil
 		}
@@ -140,25 +148,36 @@ func validateCommandLineArguments(packageArgs []string) error {
 	return nil
 }
 
-func findGoMod(dir string) (goModPath string, found bool, err error) {
+func findGoMod(dir string) (goModPath, moduleName string, found bool, err error) {
 	dir, err = filepath.Abs(dir)
 	if err != nil {
-		return "", false, fmt.Errorf("failed to resolve %q: %w", dir, err)
+		return "", "", false, fmt.Errorf("failed to resolve %q: %w", dir, err)
 	}
 
 	for {
 		goModPath = filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(goModPath); err != nil {
 			if !os.IsNotExist(err) {
-				return "", false, fmt.Errorf("failed to stat %q: %w", goModPath, err)
+				return "", "", false, fmt.Errorf("failed to stat %q: %w", goModPath, err)
 			}
 		} else {
-			return goModPath, true, nil
+			data, err := os.ReadFile(goModPath)
+			if err != nil {
+				return "", "", false, fmt.Errorf("failed to read %q: %w", goModPath, err)
+			}
+			modFile, err := modfile.Parse(goModPath, data, nil)
+			if err != nil {
+				return "", "", false, fmt.Errorf("failed to parse %q: %w", goModPath, err)
+			}
+			if modFile.Module == nil || modFile.Module.Mod.Path == "" {
+				return "", "", false, fmt.Errorf("invalid module in %q", goModPath)
+			}
+			return goModPath, modFile.Module.Mod.Path, true, nil
 		}
 
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			return "", false, nil
+			return "", "", false, nil
 		}
 		dir = parent
 	}

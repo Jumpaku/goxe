@@ -11,26 +11,22 @@ import (
 )
 
 func (s *Xtrace) newStatementLogStmt(pos token.Position, fragment string) ast.Stmt {
-	// log.Println(fmt.Sprintf(`if a == 1 { /* path/to/source.go:123:45 */`))
-	content := fmt.Sprintf("%s ", fragment)
-	content = strings.ReplaceAll(content, "\t", "    ")
-	if len(content) < s.LineWidth {
-		content += strings.Repeat(".", s.LineWidth-len(content))
+	// PrintlnStatement(`if a == 1 { [ path/to/source.go:123:45 ]`)
+	line := strings.ReplaceAll(fragment, "\t", "    ") + " "
+	if len(line) < s.LineWidth {
+		line += strings.Repeat(".", s.LineWidth-len(line))
 	}
-	content += fmt.Sprintf(" [ %s:%d:%d ]", pos.Filename, pos.Line, pos.Column)
+	line += fmt.Sprintf(" [ %s:%d:%d ]", pos.Filename, pos.Line, pos.Column)
 	return &ast.ExprStmt{
 		X: &ast.CallExpr{
-			Fun: ast.NewIdent(s.Prefix + "_log.Println"),
+			Fun: ast.NewIdent(s.IdentifierPrintlnStatement()),
 			Args: []ast.Expr{
-				&ast.CallExpr{
-					Fun: ast.NewIdent(s.Prefix + "_fmt.Sprintf"),
-					Args: []ast.Expr{
-						&ast.BasicLit{
-							Kind:  token.STRING,
-							Value: fmt.Sprintf("%q", strings.ReplaceAll(content, "%", "%%")),
-						},
-					},
+				&ast.BasicLit{
+					Kind:  token.STRING,
+					Value: fmt.Sprintf("%q", line),
 				},
+				&ast.Ident{Name: s.IdentShowTimestamp()},
+				&ast.Ident{Name: s.IdentShowGoroutine()},
 			},
 		},
 	}
@@ -190,5 +186,26 @@ func (s *Xtrace) logIfElseStatement(c *astutil.Cursor, info *IfElseInfo) {
 		info.ElseBody.List = append(stmts, info.ElseBody.List...)
 		c.Replace(info.ElseBody)
 		s.requireImport = len(stmts) > 0
+	}
+}
+
+func (s *Xtrace) logCaseStatement(c *astutil.Cursor, info *CaseInfo) {
+	if !s.TraceStmt {
+		return
+	}
+
+	if info.Case != nil {
+		frag := s.fragmentLine(info.Case.Case)
+		stmt := s.newStatementLogStmt(s.fset.Position(info.Case.Case), frag)
+		info.Case.Body = append([]ast.Stmt{stmt}, info.Case.Body...)
+		c.Replace(info.Case)
+		s.requireImport = true
+	}
+	if info.Comm != nil {
+		frag := s.fragmentLine(info.Comm.Case)
+		stmt := s.newStatementLogStmt(s.fset.Position(info.Comm.Case), frag)
+		info.Comm.Body = append([]ast.Stmt{stmt}, info.Comm.Body...)
+		c.Replace(info.Comm)
+		s.requireImport = true
 	}
 }

@@ -18,20 +18,76 @@ type Config struct {
 	TraceStmt bool
 	TraceVar  bool
 	TraceCall bool
-	TraceCase bool
-	Prefix    string
-	LineWidth int
+
+	ShowTimestamp bool
+	ShowGoroutine bool
+
+	UniqueString string
+	LineWidth    int
+
+	ResolveType ResolveType
+	ModulePath  string
 }
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
-func (cfg *Config) GenPrefix(seed int64) {
+func (cfg *Config) GenUniqueString(seed int64) {
 	r := rand.New(rand.NewSource(seed))
 	v := []byte{}
 	for i := 0; i < 8; i++ {
 		v = append(v, alphabet[r.Intn(len(alphabet))])
 	}
-	cfg.Prefix = "xtracego_" + string(v)
+	cfg.UniqueString = string(v)
+}
+
+func (cfg *Config) PackageName() string {
+	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+		return "main"
+	}
+	return "xtracego_" + cfg.UniqueString
+}
+
+func (cfg *Config) ImportPath() string {
+	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+		return ""
+	}
+	return cfg.ModulePath + "/" + cfg.PackageName()
+}
+
+func (cfg *Config) FileName() string {
+	return "xtracego_" + cfg.UniqueString + ".go"
+}
+
+func (cfg *Config) IdentifierPrintlnStatement() string {
+	funcName := "PrintlnStatement_" + cfg.UniqueString
+	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+		return funcName
+	}
+	return cfg.PackageName() + "." + funcName
+}
+
+func (cfg *Config) IdentifierPrintlnVariable() string {
+	funcName := "PrintlnVariable_" + cfg.UniqueString
+	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+		return funcName
+	}
+	return cfg.PackageName() + "." + funcName
+}
+
+func (cfg *Config) IdentifierPrintlnCall() string {
+	funcName := "PrintlnCall_" + cfg.UniqueString
+	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+		return funcName
+	}
+	return cfg.PackageName() + "." + funcName
+}
+
+func (cfg *Config) IdentifierPrintlnReturn() string {
+	funcName := "PrintlnReturn_" + cfg.UniqueString
+	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+		return funcName
+	}
+	return cfg.PackageName() + "." + funcName
 }
 
 func ProcessCode(config Config, filename string, src []byte) (dst []byte, err error) {
@@ -75,7 +131,7 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 					s.logForVariables(c, info)
 				}
 				if info, ok := s.caseByBody[node]; ok {
-					s.logCase(c, info)
+					s.logCaseStatement(c, info)
 				}
 				if info, ok := s.ifElseByBody[node]; ok {
 					s.logIfVariables(c, info)
@@ -121,8 +177,7 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 	})
 
 	if s.requireImport {
-		astutil.AddNamedImport(fset, f, config.Prefix+"_log", "log")
-		astutil.AddNamedImport(fset, f, config.Prefix+"_fmt", "fmt")
+		astutil.AddImport(fset, f, config.ImportPath())
 	}
 
 	buf := bytes.NewBuffer(nil)
@@ -166,6 +221,20 @@ func (s *Xtrace) fragmentLine(pos token.Pos) string {
 	frag, _, _ = strings.Cut(frag, "\n")
 	frag, _, _ = strings.Cut(frag, "\r")
 	return frag
+}
+
+func (s *Xtrace) IdentShowTimestamp() string {
+	if s.ShowTimestamp {
+		return "true"
+	}
+	return "false"
+}
+
+func (s *Xtrace) IdentShowGoroutine() string {
+	if s.ShowGoroutine {
+		return "true"
+	}
+	return "false"
 }
 
 type FuncInfo struct {

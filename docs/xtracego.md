@@ -11,13 +11,17 @@ xtracego [<option>]...
 
 ### Options
 
+* `-goroutine[=<boolean>]`  (default=`true`),  
+  `-no-goroutine[=<boolean>]`:  
+  Whether show goroutine ID or not.  
+
+* `-timestamp[=<boolean>]`  (default=`true`),  
+  `-no-timestamp[=<boolean>]`:  
+  Whether show timestamp or not.  
+
 * `-trace-call[=<boolean>]`  (default=`true`),  
   `-no-trace-call[=<boolean>]`:  
-  Whether trace calling functions and methods or not.  
-
-* `-trace-case[=<boolean>]`  (default=`true`),  
-  `-no-trace-case[=<boolean>]`:  
-  Whether trace cases of switch and select statements or not.  
+  Whether trace calling and returning functions and methods or not.  
 
 * `-trace-stmt[=<boolean>]`  (default=`true`),  
   `-no-trace-stmt[=<boolean>]`:  
@@ -72,13 +76,17 @@ xtracego build [<option>|<argument>]... [-- [<argument>]...]
   Arguments to be passed to the go build command.  
   If there are multiple arguments for go build, this option can be specified multiple times.  
 
+* `-goroutine[=<boolean>]`  (default=`true`),  
+  `-no-goroutine[=<boolean>]`:  
+  Whether show goroutine ID or not.  
+
+* `-timestamp[=<boolean>]`  (default=`true`),  
+  `-no-timestamp[=<boolean>]`:  
+  Whether show timestamp or not.  
+
 * `-trace-call[=<boolean>]`  (default=`true`),  
   `-no-trace-call[=<boolean>]`:  
-  Whether trace calling functions and methods or not.  
-
-* `-trace-case[=<boolean>]`  (default=`true`),  
-  `-no-trace-case[=<boolean>]`:  
-  Whether trace cases of switch and select statements or not.  
+  Whether trace calling and returning functions and methods or not.  
 
 * `-trace-stmt[=<boolean>]`  (default=`true`),  
   `-no-trace-stmt[=<boolean>]`:  
@@ -93,8 +101,8 @@ xtracego build [<option>|<argument>]... [-- [<argument>]...]
 
 ### Arguments
 
-0. `[<package:string>]...`  
-  Path to a local directory of the main package or paths to source files in the package to be rewritten.  
+0. `<package:string>`  
+  Path to a local directory of the main package to be rewritten.  
 
 
 
@@ -115,17 +123,21 @@ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]
 
 ### Options
 
+* `-goroutine[=<boolean>]`  (default=`true`),  
+  `-no-goroutine[=<boolean>]`:  
+  Whether show goroutine ID or not.  
+
 * `-output-directory=<string>`, `-o=<string>`  (default=`""`):  
   Output directory to place the rewritten source files of the package.  
   This option is required.  
 
+* `-timestamp[=<boolean>]`  (default=`true`),  
+  `-no-timestamp[=<boolean>]`:  
+  Whether show timestamp or not.  
+
 * `-trace-call[=<boolean>]`  (default=`true`),  
   `-no-trace-call[=<boolean>]`:  
-  Whether trace calling functions and methods or not.  
-
-* `-trace-case[=<boolean>]`  (default=`true`),  
-  `-no-trace-case[=<boolean>]`:  
-  Whether trace cases of switch and select statements or not.  
+  Whether trace calling and returning functions and methods or not.  
 
 * `-trace-stmt[=<boolean>]`  (default=`true`),  
   `-no-trace-stmt[=<boolean>]`:  
@@ -140,8 +152,8 @@ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]
 
 ### Arguments
 
-0. `[<package:string>]...`  
-  Path to a local directory of the main package or paths to source files in the package to be rewritten.  
+0. `<package:string>`  
+  Path to a local directory of the main package to be rewritten.  
 
 
 
@@ -166,13 +178,17 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
   Arguments to be passed to the go run command.  
   If there are multiple arguments for go build, this option can be specified multiple times.  
 
+* `-goroutine[=<boolean>]`  (default=`true`),  
+  `-no-goroutine[=<boolean>]`:  
+  Whether show goroutine ID or not.  
+
+* `-timestamp[=<boolean>]`  (default=`true`),  
+  `-no-timestamp[=<boolean>]`:  
+  Whether show timestamp or not.  
+
 * `-trace-call[=<boolean>]`  (default=`true`),  
   `-no-trace-call[=<boolean>]`:  
-  Whether trace calling functions and methods or not.  
-
-* `-trace-case[=<boolean>]`  (default=`true`),  
-  `-no-trace-case[=<boolean>]`:  
-  Whether trace cases of switch and select statements or not.  
+  Whether trace calling and returning functions and methods or not.  
 
 * `-trace-stmt[=<boolean>]`  (default=`true`),  
   `-no-trace-stmt[=<boolean>]`:  
@@ -187,21 +203,11 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
 
 ### Arguments
 
-0. `[<package_and_arguments:string>]...`  
-  Path to a local directory of the main package or paths to source files in the package to be rewritten, followed by arguments to be passed to the main function.  
-  If a local directory is given as the first argument, the rest of the arguments is treated as arguments to the main function.  
-  If source files, each of which ends with '.go', are given as the first arguments, the rest of the arguments is treated as arguments to the main function.  
-  Arguments after the first '--' are treated as arguments to the main function.  
-  * Example 1:  
-    xtracego run /path/to/main/package arg1 arg2 --> package=/path/to/main/package, arguments=[arg1, arg2]  
-  * Example 2:  
-    xtracego run ./path/to/main/package arg1 arg2 --> package=./path/to/main/package, arguments=[arg1, arg2]  
-  * Example 3:  
-    xtracego run ./path/to/main/package -- arg1 arg2 --> package=./path/to/main/package, arguments=[arg1, arg2]  
-  * Example 4:  
-    xtracego run ./source.go ./files.go ./arg.go arg1 arg2 --> package=[./source.go, ./files.go, ./arg.go], arguments=[arg1, arg2]   
-  * Example 5:  
-    xtracego run ./source.go ./files.go -- ./arg.go arg1 arg2 --> package=[./source.go, ./files.go], arguments=[./arg.go, arg1, arg2]   
+0. `<package:string>`  
+  Path to a local directory of the main package to be rewritten, followed by arguments to be passed to the main function.  
+
+1. `[<arguments:string>]...`  
+  Arguments to be passed to the main function.  
 
 
 
