@@ -89,8 +89,30 @@ Xtrace is execution trace information. The following traces are available:
 
 ## Installation
 
-```sh
-go install github.com/jumpaku/xtracego/cmd/xtracego@latest
+### Using Go
+
+```shell
+go install github.com/Jumpaku/xtracego/cmd/xtracego@latest
+```
+
+### Using Docker
+
+```shell
+docker run -i -v $(pwd):/workspace ghcr.io/jumpaku/xtracego:latest xtracego
+```
+
+### Downloading executable binary files
+
+https://github.com/Jumpaku/xtracego/releases
+
+Note that the downloaded executable binary file may require a security confirmation before it can be run.
+
+### Building from source
+
+```shell
+git clone https://github.com/Jumpaku/xtracego.git
+cd xtracego
+go install ./cmd/xtracego
 ```
 
 ## Usage
