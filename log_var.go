@@ -193,3 +193,21 @@ func (s *Xtrace) logIfVariables(c *astutil.Cursor, info *IfElseInfo) {
 		s.requireImport = len(vars) > 0
 	}
 }
+
+func (s *Xtrace) logCallVariables(c *astutil.Cursor, info *FuncInfo) {
+	if !s.TraceCall {
+		return
+	}
+	params := []ast.Stmt{}
+	for _, param := range info.FuncDecl.Type.Params.List {
+		for _, name := range param.Names {
+			if name.Name == "_" {
+				continue
+			}
+			params = append(params, s.newVariableLogStmt(name.Name, false))
+		}
+	}
+	info.Body.List = append(params, info.Body.List...)
+	c.Replace(info.Body)
+	s.requireImport = true
+}

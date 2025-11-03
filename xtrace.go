@@ -125,6 +125,7 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 		case ast.Stmt:
 			{
 				if info, ok := s.funcByBody[node]; ok {
+					s.logCallVariables(c, info)
 					s.logCall(c, info)
 				}
 				if info, ok := s.forByBody[node]; ok {
@@ -251,7 +252,7 @@ func CollectFuncInfo(f *ast.File) (funcByBody map[ast.Stmt]*FuncInfo) {
 	ast.PreorderStack(f, nil, func(n ast.Node, s []ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.FuncDecl:
-			if node.Body != nil && len(node.Body.List) > 0 {
+			if node.Body != nil {
 				funcByBody[node.Body] = &FuncInfo{
 					Body:     node.Body,
 					FuncDecl: node,
