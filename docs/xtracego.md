@@ -1,4 +1,4 @@
-# xtracego
+# xtracego (v0.0.6)
 
 
 ## xtracego
@@ -56,6 +56,9 @@ xtracego [<option>]...
   Rewrites the source files in the specified package and places these files in a temporary directory.  
   Executes go build at the temporary directory with the given arguments.  
   Thereafter, the built executable file is executed at the current working directory.  
+
+* version:  
+  Prints the version of xtracego.  
 
 
 
@@ -236,6 +239,53 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
 
 1. `[<arguments:string>]...`  
   Arguments to be passed to the main function.  
+
+
+
+
+## xtracego version
+
+### Description
+
+Prints the version of xtracego.
+
+### Syntax
+
+```shell
+xtracego version [<option>]...
+```
+
+### Options
+
+* `-copy-only=<string> ...`  :  
+  Specifies source files not to be rewritten but only copied by regular expressions.  
+  If a source file is included in the package and its absolute path matches this regular expression, it is only copied to the output directory.  
+
+* `-copy-only-not=<string>`  (default=`".*"`):  
+  Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.  
+
+* `-goroutine[=<boolean>]`  (default=`true`),  
+  `-no-goroutine[=<boolean>]`:  
+  Whether show goroutine ID or not.  
+
+* `-timestamp[=<boolean>]`  (default=`true`),  
+  `-no-timestamp[=<boolean>]`:  
+  Whether show timestamp or not.  
+
+* `-trace-call[=<boolean>]`  (default=`true`),  
+  `-no-trace-call[=<boolean>]`:  
+  Whether trace calling and returning functions and methods or not.  
+
+* `-trace-stmt[=<boolean>]`  (default=`true`),  
+  `-no-trace-stmt[=<boolean>]`:  
+  Whether trace basic statements or not.  
+
+* `-trace-var[=<boolean>]`  (default=`true`),  
+  `-no-trace-var[=<boolean>]`:  
+  Whether trace variables and constants or not.  
+
+* `-verbose[=<boolean>]`, `-v[=<boolean>]`  (default=`false`):  
+  Whether to output verbose messages or not.  
 
 
 

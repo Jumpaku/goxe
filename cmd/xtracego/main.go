@@ -19,8 +19,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-//go:generate cyamli generate golang -schema-path=cli.yaml -out-path=cli.gen.go
-//go:generate cyamli generate docs -format=markdown -schema-path=cli.yaml -out-path=../../docs/xtracego.md
+//go:generate cyamli generate golang -schema-path=cli.cyamli.yaml -out-path=cli.gen.go
+//go:generate cyamli generate docs -format=markdown -schema-path=cli.cyamli.yaml -out-path=../../docs/xtracego.md
 func main() {
 	if err := Run(&cliHandler{}, os.Args); err != nil {
 		log.Panicf("error: %+v\n", err)
@@ -55,6 +55,11 @@ func (h *cliHandler) logf(format string, args ...any) {
 	if h.verbose {
 		log.Printf(format+"\n", args...)
 	}
+}
+
+func (h *cliHandler) Run_Version(_ Input_Version) error {
+	fmt.Println(GetVersion())
+	return nil
 }
 
 func (h *cliHandler) Run(input Input) error {

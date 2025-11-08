@@ -1,5 +1,6 @@
 #$schema: https://raw.githubusercontent.com/Jumpaku/cyamli/refs/heads/main/v2/schema/cyamli-cli.schema.json
 name: xtracego
+version: v0.0.6
 options:
   -verbose:
     type: boolean
@@ -57,7 +58,9 @@ options:
       Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.
 
 subcommands:
-
+  version:
+    description: |
+      Prints the version of xtracego.
   rewrite:
     description: |
       Rewrites the source files in the specified package and places these files in the output directory.
