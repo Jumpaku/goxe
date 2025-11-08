@@ -280,7 +280,7 @@ func (h *cliHandler) saveGoModFile(cfg xtracego.Config, outDir string) {
 
 	h.logf("[add] %s", dst)
 	err := xtracego.SaveFile(dst, fmt.Sprintf(`module %s`, cfg.UniqueString))
-	panicIfError(err, "failed to save library")
+	panicIfError(err, "failed to save go.mod file")
 }
 
 func (h cliHandler) getBuildPackageDir(pkg xtracego.ResolvedPackage, outDir string) string {

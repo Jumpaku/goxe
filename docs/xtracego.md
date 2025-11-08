@@ -23,7 +23,7 @@ xtracego [<option>]...
   Whether show goroutine ID or not.  
 
 * `-seed=<integer>`  (default=`0`):  
-  Random seed for reproductivity of rewritten source files.  
+  Random seed for reproducibility of rewritten source files.  
   If not specified, the seed is generated randomly.  
 
 * `-timestamp[=<boolean>]`  (default=`true`),  
@@ -102,7 +102,7 @@ xtracego build [<option>|<argument>]... [-- [<argument>]...]
   Whether show goroutine ID or not.  
 
 * `-seed=<integer>`  (default=`0`):  
-  Random seed for reproductivity of rewritten source files.  
+  Random seed for reproducibility of rewritten source files.  
   If not specified, the seed is generated randomly.  
 
 * `-timestamp[=<boolean>]`  (default=`true`),  
@@ -165,7 +165,7 @@ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]
   This option is required.  
 
 * `-seed=<integer>`  (default=`0`):  
-  Random seed for reproductivity of rewritten source files.  
+  Random seed for reproducibility of rewritten source files.  
   If not specified, the seed is generated randomly.  
 
 * `-timestamp[=<boolean>]`  (default=`true`),  
@@ -233,7 +233,7 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
   Whether show goroutine ID or not.  
 
 * `-seed=<integer>`  (default=`0`):  
-  Random seed for reproductivity of rewritten source files.  
+  Random seed for reproducibility of rewritten source files.  
   If not specified, the seed is generated randomly.  
 
 * `-timestamp[=<boolean>]`  (default=`true`),  
@@ -293,7 +293,7 @@ xtracego version [<option>]...
   Whether show goroutine ID or not.  
 
 * `-seed=<integer>`  (default=`0`):  
-  Random seed for reproductivity of rewritten source files.  
+  Random seed for reproducibility of rewritten source files.  
   If not specified, the seed is generated randomly.  
 
 * `-timestamp[=<boolean>]`  (default=`true`),  
