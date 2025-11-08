@@ -25,21 +25,21 @@ type Config struct {
 	LineWidth    int
 
 	ResolveType ResolveType
-	ModulePath  string
+	ModuleName  string
 }
 
 func (cfg *Config) PackageName() string {
-	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return "main"
 	}
 	return "xtracego_" + cfg.UniqueString
 }
 
 func (cfg *Config) ImportPath() string {
-	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return ""
 	}
-	return cfg.ModulePath + "/" + cfg.PackageName()
+	return cfg.ModuleName + "/" + cfg.PackageName()
 }
 
 func (cfg *Config) LibraryFileName() string {
@@ -52,7 +52,7 @@ func (cfg *Config) ExecutableFileName() string {
 
 func (cfg *Config) IdentifierPrintlnStatement() string {
 	funcName := "PrintlnStatement_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
 	return cfg.PackageName() + "." + funcName
@@ -60,7 +60,7 @@ func (cfg *Config) IdentifierPrintlnStatement() string {
 
 func (cfg *Config) IdentifierPrintlnVariable() string {
 	funcName := "PrintlnVariable_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
 	return cfg.PackageName() + "." + funcName
@@ -68,7 +68,7 @@ func (cfg *Config) IdentifierPrintlnVariable() string {
 
 func (cfg *Config) IdentifierPrintlnCall() string {
 	funcName := "PrintlnCall_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
 	return cfg.PackageName() + "." + funcName
@@ -76,7 +76,7 @@ func (cfg *Config) IdentifierPrintlnCall() string {
 
 func (cfg *Config) IdentifierPrintlnReturn() string {
 	funcName := "PrintlnReturn_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveTypeCommandLineArguments {
+	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
 	return cfg.PackageName() + "." + funcName

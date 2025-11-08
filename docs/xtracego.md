@@ -11,11 +11,11 @@ xtracego [<option>]...
 
 ### Options
 
-* `-copy-only=<string>`  (default=`""`):  
+* `-copy-only=<string> ...`  :  
   Specifies source files not to be rewritten but only copied by regular expressions.  
   If a source file is included in the package and its absolute path matches this regular expression, it is only copied to the output directory.  
 
-* `-copy-only-not=<string>`  (default=`""`):  
+* `-copy-only-not=<string>`  (default=`".*"`):  
   Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.  
 
 * `-goroutine[=<boolean>]`  (default=`true`),  
@@ -79,14 +79,14 @@ xtracego build [<option>|<argument>]... [-- [<argument>]...]
   The source files included the specified package are rewritten and placed in this directory which is used as a current working directory to execute go build.  
   This option is required.  
 
-* `-copy-only=<string>`  (default=`""`):  
+* `-copy-only=<string> ...`  :  
   Specifies source files not to be rewritten but only copied by regular expressions.  
   If a source file is included in the package and its absolute path matches this regular expression, it is only copied to the output directory.  
 
-* `-copy-only-not=<string>`  (default=`""`):  
+* `-copy-only-not=<string>`  (default=`".*"`):  
   Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.  
 
-* `-go-build-arg=<string>`, `-a=<string>`  (default=`""`):  
+* `-go-build-arg=<string> ...`, `-a=<string> ...`  :  
   Arguments to be passed to the go build command.  
   If there are multiple arguments for go build, this option can be specified multiple times.  
 
@@ -137,11 +137,11 @@ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]
 
 ### Options
 
-* `-copy-only=<string>`  (default=`""`):  
+* `-copy-only=<string> ...`  :  
   Specifies source files not to be rewritten but only copied by regular expressions.  
   If a source file is included in the package and its absolute path matches this regular expression, it is only copied to the output directory.  
 
-* `-copy-only-not=<string>`  (default=`""`):  
+* `-copy-only-not=<string>`  (default=`".*"`):  
   Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.  
 
 * `-goroutine[=<boolean>]`  (default=`true`),  
@@ -195,14 +195,14 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
 
 ### Options
 
-* `-copy-only=<string>`  (default=`""`):  
+* `-copy-only=<string> ...`  :  
   Specifies source files not to be rewritten but only copied by regular expressions.  
   If a source file is included in the package and its absolute path matches this regular expression, it is only copied to the output directory.  
 
-* `-copy-only-not=<string>`  (default=`""`):  
+* `-copy-only-not=<string>`  (default=`".*"`):  
   Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.  
 
-* `-go-build-arg=<string>`, `-a=<string>`  (default=`""`):  
+* `-go-build-arg=<string> ...`, `-a=<string> ...`  :  
   Arguments to be passed to the go run command.  
   If there are multiple arguments for go build, this option can be specified multiple times.  
 

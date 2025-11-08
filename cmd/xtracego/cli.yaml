@@ -51,6 +51,7 @@ options:
       If a source file is included in the package and its absolute path matches this regular expression, it is only copied to the output directory.
   -copy-only-not:
     type: string
+    default: '.*'
     propagates: true
     description: |
       Same as -copy-only but source files whose absolute path  **DO NOT MATCH**  this regular expression are only copied.
