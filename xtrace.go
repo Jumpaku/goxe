@@ -28,18 +28,18 @@ type Config struct {
 	ModuleName  string
 }
 
-func (cfg *Config) PackageName() string {
+func (cfg *Config) LibraryPackageName() string {
 	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return "main"
 	}
 	return "xtracego_" + cfg.UniqueString
 }
 
-func (cfg *Config) ImportPath() string {
+func (cfg *Config) LibraryImportPath() string {
 	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return ""
 	}
-	return cfg.ModuleName + "/" + cfg.PackageName()
+	return cfg.ModuleName + "/" + cfg.LibraryPackageName()
 }
 
 func (cfg *Config) LibraryFileName() string {
@@ -55,7 +55,7 @@ func (cfg *Config) IdentifierPrintlnStatement() string {
 	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
-	return cfg.PackageName() + "." + funcName
+	return cfg.LibraryPackageName() + "." + funcName
 }
 
 func (cfg *Config) IdentifierPrintlnVariable() string {
@@ -63,7 +63,7 @@ func (cfg *Config) IdentifierPrintlnVariable() string {
 	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
-	return cfg.PackageName() + "." + funcName
+	return cfg.LibraryPackageName() + "." + funcName
 }
 
 func (cfg *Config) IdentifierPrintlnCall() string {
@@ -71,7 +71,7 @@ func (cfg *Config) IdentifierPrintlnCall() string {
 	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
-	return cfg.PackageName() + "." + funcName
+	return cfg.LibraryPackageName() + "." + funcName
 }
 
 func (cfg *Config) IdentifierPrintlnReturn() string {
@@ -79,7 +79,7 @@ func (cfg *Config) IdentifierPrintlnReturn() string {
 	if cfg.ResolveType == ResolveType_CommandLineArguments {
 		return funcName
 	}
-	return cfg.PackageName() + "." + funcName
+	return cfg.LibraryPackageName() + "." + funcName
 }
 
 func ProcessCode(config Config, filename string, src []byte) (dst []byte, err error) {
@@ -169,8 +169,8 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 		return true
 	})
 
-	if s.requireImport {
-		astutil.AddImport(fset, f, config.ImportPath())
+	if s.libraryRequired && s.ResolveType != ResolveType_CommandLineArguments {
+		astutil.AddImport(fset, f, config.LibraryImportPath())
 	}
 
 	buf := bytes.NewBuffer(nil)
@@ -191,7 +191,7 @@ type Xtrace struct {
 	caseByBody   map[ast.Stmt]*CaseInfo
 	ifElseByBody map[ast.Stmt]*IfElseInfo
 
-	requireImport bool
+	libraryRequired bool
 }
 
 func (s *Xtrace) fragment(pos, end token.Pos) string {

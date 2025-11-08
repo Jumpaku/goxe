@@ -22,6 +22,10 @@ xtracego [<option>]...
   `-no-goroutine[=<boolean>]`:  
   Whether show goroutine ID or not.  
 
+* `-seed=<integer>`  (default=`0`):  
+  Random seed for reproductivity of rewritten source files.  
+  If not specified, the seed is generated randomly.  
+
 * `-timestamp[=<boolean>]`  (default=`true`),  
   `-no-timestamp[=<boolean>]`:  
   Whether show timestamp or not.  
@@ -97,6 +101,10 @@ xtracego build [<option>|<argument>]... [-- [<argument>]...]
   `-no-goroutine[=<boolean>]`:  
   Whether show goroutine ID or not.  
 
+* `-seed=<integer>`  (default=`0`):  
+  Random seed for reproductivity of rewritten source files.  
+  If not specified, the seed is generated randomly.  
+
 * `-timestamp[=<boolean>]`  (default=`true`),  
   `-no-timestamp[=<boolean>]`:  
   Whether show timestamp or not.  
@@ -119,7 +127,8 @@ xtracego build [<option>|<argument>]... [-- [<argument>]...]
 ### Arguments
 
 0. `<package:string>`  
-  Path to a local directory of the main package to be rewritten.  
+  Package to be rewritten and built.  
+  The way to specify the package is as same as xtracego rewrite command.  
 
 
 
@@ -155,6 +164,10 @@ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]
   Output directory to place the rewritten source files of the package.  
   This option is required.  
 
+* `-seed=<integer>`  (default=`0`):  
+  Random seed for reproductivity of rewritten source files.  
+  If not specified, the seed is generated randomly.  
+
 * `-timestamp[=<boolean>]`  (default=`true`),  
   `-no-timestamp[=<boolean>]`:  
   Whether show timestamp or not.  
@@ -177,7 +190,13 @@ xtracego rewrite [<option>|<argument>]... [-- [<argument>]...]
 ### Arguments
 
 0. `<package:string>`  
-  Path to a local directory of the main package to be rewritten.  
+  Package to be rewritten can be specified by path to a local directory or paths to local source files of a main package.  
+    
+  When the package is specified with a local directory path, go.mod must be found at the ancestors of the current working directory.  
+  Dependencies in the same module and external dependencies are resolved via the go.mod.  
+    
+  When the package is specified with local source file paths, the source files must have extension .go, be in the same directory, be in the main package, and contain only one main function.  
+  If go.mod is found at the ancestors of the current working directory, dependencies in the same module and external dependencies are resolved via the go.mod.  
 
 
 
@@ -213,6 +232,10 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
   `-no-goroutine[=<boolean>]`:  
   Whether show goroutine ID or not.  
 
+* `-seed=<integer>`  (default=`0`):  
+  Random seed for reproductivity of rewritten source files.  
+  If not specified, the seed is generated randomly.  
+
 * `-timestamp[=<boolean>]`  (default=`true`),  
   `-no-timestamp[=<boolean>]`:  
   Whether show timestamp or not.  
@@ -235,7 +258,8 @@ xtracego run [<option>|<argument>]... [-- [<argument>]...]
 ### Arguments
 
 0. `<package:string>`  
-  Path to a local directory of the main package to be rewritten, followed by arguments to be passed to the main function.  
+  Package to be rewritten and built.  
+  The way to specify the package is as same as xtracego rewrite command.  
 
 1. `[<arguments:string>]...`  
   Arguments to be passed to the main function.  
@@ -267,6 +291,10 @@ xtracego version [<option>]...
 * `-goroutine[=<boolean>]`  (default=`true`),  
   `-no-goroutine[=<boolean>]`:  
   Whether show goroutine ID or not.  
+
+* `-seed=<integer>`  (default=`0`):  
+  Random seed for reproductivity of rewritten source files.  
+  If not specified, the seed is generated randomly.  
 
 * `-timestamp[=<boolean>]`  (default=`true`),  
   `-no-timestamp[=<boolean>]`:  

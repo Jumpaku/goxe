@@ -82,17 +82,21 @@ func (h *cliHandler) Run_Rewrite(input Input_Rewrite) (err error) {
 		ShowGoroutine: input.Opt_Goroutine,
 		ResolveType:   pkg.ResolveType,
 		ModuleName:    pkg.Module,
-		UniqueString:  generateUniqueString(time.Now().Unix()),
+		UniqueString:  generateUniqueString(input.Opt_Seed),
 	}
 
 	h.transformSourceFiles(cfg, pkg, outDir, input.Opt_CopyOnly, input.Opt_CopyOnlyNot)
 
 	h.saveLibraryFiles(cfg, outDir)
 
+	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
+		h.saveGoModFile(cfg, outDir)
+	}
+
 	return nil
 }
 
-func (h cliHandler) Run_Build(input Input_Build) error {
+func (h cliHandler) Run_Build(input Input_Build) (err error) {
 	h.verbose = input.Opt_Verbose
 
 	outDir := requireOption(input.Subcommand, "-build-directory", input.Opt_BuildDirectory)
@@ -107,21 +111,21 @@ func (h cliHandler) Run_Build(input Input_Build) error {
 		ShowGoroutine: input.Opt_Goroutine,
 		ResolveType:   pkg.ResolveType,
 		ModuleName:    pkg.Module,
-		UniqueString:  generateUniqueString(time.Now().Unix()),
+		UniqueString:  generateUniqueString(input.Opt_Seed),
 	}
 
 	h.transformSourceFiles(cfg, pkg, outDir, input.Opt_CopyOnly, input.Opt_CopyOnlyNot)
 
-	libSource := h.saveLibraryFiles(cfg, outDir)
+	h.saveLibraryFiles(cfg, outDir)
 
-	packageArgs := strings.Split(input.Arg_Package, ",")
+	packageDir := h.getBuildPackageDir(pkg, outDir)
 	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
-		packageArgs = append(packageArgs, libSource)
-	} else {
-		h.execGoModTidy(outDir)
+		h.saveGoModFile(cfg, outDir)
 	}
 
-	h.execGoBuild(input.Opt_GoBuildArg, packageArgs, outDir)
+	h.execGoModTidy(outDir)
+
+	h.execGoBuild(input.Opt_GoBuildArg, packageDir, outDir)
 
 	return nil
 }
@@ -134,6 +138,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 	defer os.RemoveAll(outDir)
 
 	pkg := h.resolvePackage(input.Arg_Package)
+	fmt.Println(pkg)
 
 	cfg := xtracego.Config{
 		TraceStmt:     input.Opt_TraceStmt,
@@ -143,24 +148,24 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 		ShowGoroutine: input.Opt_Goroutine,
 		ResolveType:   pkg.ResolveType,
 		ModuleName:    pkg.Module,
-		UniqueString:  generateUniqueString(time.Now().Unix()),
+		UniqueString:  generateUniqueString(input.Opt_Seed),
 	}
 
 	h.transformSourceFiles(cfg, pkg, outDir, input.Opt_CopyOnly, input.Opt_CopyOnlyNot)
 
-	libSource := h.saveLibraryFiles(cfg, outDir)
+	h.saveLibraryFiles(cfg, outDir)
 
-	packageArgs := strings.Split(input.Arg_Package, ",")
+	packageDir := h.getBuildPackageDir(pkg, outDir)
 	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
-		packageArgs = append(packageArgs, libSource)
-	} else {
-		h.execGoModTidy(outDir)
+		h.saveGoModFile(cfg, outDir)
 	}
+
+	h.execGoModTidy(outDir)
 
 	execFile, err := filepath.Abs(filepath.Join(outDir, cfg.ExecutableFileName()))
 	panicIfError(err, "failed to get absolute path")
 
-	h.execGoBuild(append(input.Opt_GoBuildArg, "-o", execFile), packageArgs, outDir)
+	h.execGoBuild(append(input.Opt_GoBuildArg, "-o", execFile), packageDir, outDir)
 
 	h.execBuiltFile(input, execFile)
 
@@ -168,6 +173,9 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 }
 
 func generateUniqueString(seed int64) string {
+	if seed == 0 {
+		seed = time.Now().Unix()
+	}
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
 	r := rand.New(rand.NewSource(seed))
 	v := []byte{}
@@ -252,20 +260,41 @@ func (h *cliHandler) transformSourceFiles(
 	panicIfError(err, "failed to wait")
 }
 
-func (h *cliHandler) saveLibraryFiles(cfg xtracego.Config, outDir string) (dst string) {
-	panicIf(cfg.ResolveType == xtracego.ResolveType_CommandLineArguments, "unsupported resolve type: %s", cfg.ResolveType)
-
-	if cfg.PackageName() != "main" {
-		dst = filepath.Join(outDir, cfg.PackageName(), cfg.LibraryFileName())
+func (h *cliHandler) saveLibraryFiles(cfg xtracego.Config, outDir string) {
+	dst := filepath.Join(outDir, cfg.LibraryFileName())
+	if cfg.ResolveType != xtracego.ResolveType_CommandLineArguments {
+		dst = filepath.Join(outDir, cfg.LibraryPackageName(), cfg.LibraryFileName())
 	}
+
 	buf := bytes.NewBuffer(nil)
-	err := xtracego.GetXtraceGo(cfg.UniqueString, buf)
+	err := xtracego.GetLibraryCode(cfg.LibraryPackageName(), cfg.UniqueString, buf)
 	panicIfError(err, "failed to generate library")
 
 	h.logf("[add] %s", dst)
 	err = xtracego.SaveFile(dst, buf.String())
 	panicIfError(err, "failed to save library")
-	return dst
+}
+
+func (h *cliHandler) saveGoModFile(cfg xtracego.Config, outDir string) {
+	dst := filepath.Join(outDir, "go.mod")
+	panicIf(cfg.ResolveType != xtracego.ResolveType_CommandLineArguments, "go.mod is not required")
+
+	h.logf("[add] %s", dst)
+	err := xtracego.SaveFile(dst, fmt.Sprintf(`module %s`, cfg.UniqueString))
+	panicIfError(err, "failed to save library")
+}
+
+func (h cliHandler) getBuildPackageDir(pkg xtracego.ResolvedPackage, outDir string) string {
+	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
+		return "."
+	}
+	cwd, err := os.Getwd()
+	panicIfError(err, "failed to get current directory")
+	relToPkg, err := filepath.Rel(cwd, pkg.PackageDir)
+	panicIfError(err, "failed to get relative path")
+	outDir, err = filepath.Abs(outDir)
+	panicIfError(err, "failed to get absolute path")
+	return filepath.Join(outDir, relToPkg)
 }
 
 func (h cliHandler) execGoModTidy(outDir string) {
@@ -276,8 +305,8 @@ func (h cliHandler) execGoModTidy(outDir string) {
 	panicIfError(err, "failed to run go mod tidy")
 }
 
-func (h cliHandler) execGoBuild(buildArgs []string, packageArgs []string, outDir string) {
-	args := append(append([]string{"build"}, buildArgs...), packageArgs...)
+func (h cliHandler) execGoBuild(buildArgs []string, buildPackageDir string, outDir string) {
+	args := append(append([]string{"build"}, buildArgs...), buildPackageDir)
 	cmd := exec.Command("go", args...)
 	cmd.Dir, cmd.Stdout, cmd.Stderr, cmd.Stdin = outDir, os.Stdout, os.Stderr, os.Stdin
 	h.logf("[exec] %s [%s]", cmd.String(), cmd.Dir)
