@@ -1,7 +1,8 @@
 # xtracego
 
-xtracego is a command-line tool that executes Go source code with automatically injected execution traces (xtrace).
-It aims to provide an easy debugging and logging experience similar to `set -x` in shell scripts.
+xtracego is a command-line tool designed to automatically inject execution traces (xtrace) into Go source code.
+By manipulating the Abstract Syntax Tree (AST), it logs statements, function calls, and variable states to stderr during execution.
+Its goal is to enable easy debugging and logging for Go scripting, similar to the `set -x` functionality in shell scripts.
 
 ## Features
 
