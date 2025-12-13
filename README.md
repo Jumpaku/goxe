@@ -176,3 +176,4 @@ https://github.com/Jumpaku/xtracego/blob/main/docs/xtracego.md
 
 - Comments are not preserved during the AST rewriting process. 
   Therefore, compiler directives (e.g., `//go:embed`) are ignored, which may affect builds relying on them.
+
