@@ -1,4 +1,4 @@
-package xtracego
+package internal
 
 import (
 	"bytes"

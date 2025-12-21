@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Jumpaku/xtracego"
+	"github.com/Jumpaku/xtracego/internal"
 	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/term"
@@ -83,7 +83,7 @@ func (h *cliHandler) Run_Rewrite(input Input_Rewrite) (err error) {
 
 	pkg := h.resolvePackage(input.Arg_Package)
 
-	cfg := xtracego.Config{
+	cfg := internal.Config{
 		TraceStmt:     input.Opt_TraceStmt,
 		TraceVar:      input.Opt_TraceVar,
 		TraceCall:     input.Opt_TraceCall,
@@ -99,7 +99,7 @@ func (h *cliHandler) Run_Rewrite(input Input_Rewrite) (err error) {
 
 	h.saveLibraryFiles(cfg, outDir)
 
-	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
+	if pkg.ResolveType == internal.ResolveType_CommandLineArguments {
 		h.saveGoModFile(cfg, outDir)
 	}
 
@@ -121,7 +121,7 @@ func (h cliHandler) Run_Build(input Input_Build) (err error) {
 
 	pkg := h.resolvePackage(input.Arg_Package)
 
-	cfg := xtracego.Config{
+	cfg := internal.Config{
 		TraceStmt:     input.Opt_TraceStmt,
 		TraceVar:      input.Opt_TraceVar,
 		TraceCall:     input.Opt_TraceCall,
@@ -138,7 +138,7 @@ func (h cliHandler) Run_Build(input Input_Build) (err error) {
 	h.saveLibraryFiles(cfg, outDir)
 
 	packageDir := h.getBuildPackageDir(pkg, outDir)
-	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
+	if pkg.ResolveType == internal.ResolveType_CommandLineArguments {
 		h.saveGoModFile(cfg, outDir)
 	}
 
@@ -166,7 +166,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 
 	pkg := h.resolvePackage(input.Arg_Package)
 
-	cfg := xtracego.Config{
+	cfg := internal.Config{
 		TraceStmt:     input.Opt_TraceStmt,
 		TraceVar:      input.Opt_TraceVar,
 		TraceCall:     input.Opt_TraceCall,
@@ -183,7 +183,7 @@ func (h cliHandler) Run_Run(input Input_Run) error {
 	h.saveLibraryFiles(cfg, outDir)
 
 	packageDir := h.getBuildPackageDir(pkg, outDir)
-	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
+	if pkg.ResolveType == internal.ResolveType_CommandLineArguments {
 		h.saveGoModFile(cfg, outDir)
 	}
 
@@ -222,21 +222,21 @@ func generateUniqueString(seed int64) string {
 	return string(v)
 }
 
-func (h cliHandler) resolvePackage(packageArg string) xtracego.ResolvedPackage {
-	pkg, err := xtracego.ResolvePackage(packageArg)
+func (h cliHandler) resolvePackage(packageArg string) internal.ResolvedPackage {
+	pkg, err := internal.ResolvePackage(packageArg)
 	panicIfError(err, "failed to resolve package")
 	return pkg
 }
 
 func (h *cliHandler) transformSourceFiles(
-	cfg xtracego.Config,
-	pkg xtracego.ResolvedPackage,
+	cfg internal.Config,
+	pkg internal.ResolvedPackage,
 	outDir string,
 	copyOnlyRegexpStr []string,
 	copyOnlyNotRegexpStr string,
 ) {
 	srcDir, sourceFiles := pkg.PackageDir, append([]string{}, pkg.SourceFiles...)
-	if pkg.ResolveType != xtracego.ResolveType_CommandLineArguments {
+	if pkg.ResolveType != internal.ResolveType_CommandLineArguments {
 		srcDir, sourceFiles = filepath.Dir(pkg.GoModFile), append(sourceFiles, pkg.GoModFile)
 	}
 
@@ -263,14 +263,14 @@ func (h *cliHandler) transformSourceFiles(
 			}
 			dstFile := filepath.Join(outDir, relToFile)
 
-			err = xtracego.TransformFile(srcFile, dstFile, func(r io.Reader, w io.Writer) (err error) {
+			err = internal.TransformFile(srcFile, dstFile, func(r io.Reader, w io.Writer) (err error) {
 				if isGoSource && !isCopyOnly {
 					h.logf("[rewrite] %s -> %s", srcFile, dstFile)
 					src := bytes.NewBuffer(nil)
 					if _, err := io.Copy(src, r); err != nil {
 						return fmt.Errorf("failed to copy file: %w", err)
 					}
-					buf, err := xtracego.ProcessCode(cfg, srcFile, src.Bytes())
+					buf, err := internal.ProcessCode(cfg, srcFile, src.Bytes())
 					if err != nil {
 						return fmt.Errorf("failed to rewrite file: %w", err)
 					}
@@ -297,32 +297,32 @@ func (h *cliHandler) transformSourceFiles(
 	panicIfError(err, "failed to wait")
 }
 
-func (h *cliHandler) saveLibraryFiles(cfg xtracego.Config, outDir string) {
+func (h *cliHandler) saveLibraryFiles(cfg internal.Config, outDir string) {
 	dst := filepath.Join(outDir, cfg.LibraryFileName())
-	if cfg.ResolveType != xtracego.ResolveType_CommandLineArguments {
+	if cfg.ResolveType != internal.ResolveType_CommandLineArguments {
 		dst = filepath.Join(outDir, cfg.LibraryPackageName(), cfg.LibraryFileName())
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err := xtracego.GetLibraryCode(cfg.LibraryPackageName(), cfg.UniqueString, buf)
+	err := internal.GetLibraryCode(cfg.LibraryPackageName(), cfg.UniqueString, buf)
 	panicIfError(err, "failed to generate library")
 
 	h.logf("[add] %s", dst)
-	err = xtracego.SaveFile(dst, buf.String())
+	err = internal.SaveFile(dst, buf.String())
 	panicIfError(err, "failed to save library")
 }
 
-func (h *cliHandler) saveGoModFile(cfg xtracego.Config, outDir string) {
+func (h *cliHandler) saveGoModFile(cfg internal.Config, outDir string) {
 	dst := filepath.Join(outDir, "go.mod")
-	panicIf(cfg.ResolveType != xtracego.ResolveType_CommandLineArguments, "go.mod is not required")
+	panicIf(cfg.ResolveType != internal.ResolveType_CommandLineArguments, "go.mod is not required")
 
 	h.logf("[add] %s", dst)
-	err := xtracego.SaveFile(dst, fmt.Sprintf(`module %s`, cfg.UniqueString))
+	err := internal.SaveFile(dst, fmt.Sprintf(`module %s`, cfg.UniqueString))
 	panicIfError(err, "failed to save go.mod file")
 }
 
-func (h cliHandler) getBuildPackageDir(pkg xtracego.ResolvedPackage, outDir string) string {
-	if pkg.ResolveType == xtracego.ResolveType_CommandLineArguments {
+func (h cliHandler) getBuildPackageDir(pkg internal.ResolvedPackage, outDir string) string {
+	if pkg.ResolveType == internal.ResolveType_CommandLineArguments {
 		return "."
 	}
 	cwd, err := os.Getwd()
