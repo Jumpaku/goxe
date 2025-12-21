@@ -88,7 +88,7 @@ func (i *injector) InjectXtrace(src io.Reader, dst io.Writer) (err error) {
 }
 
 func (i *injector) GenerateLogger(dst io.Writer) (err error) {
-	return internal.GetLibraryCode(i.cfg.ModuleName, i.cfg.UniqueString, dst)
+	return internal.GetLibraryCode(i.cfg.LibraryPackageName(), i.cfg.UniqueString, dst)
 }
 
 func (i *injector) GenerateGoMod(dst io.Writer) (err error) {
