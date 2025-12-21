@@ -1,4 +1,4 @@
-package xtracego
+package internal
 
 import (
 	"bytes"
@@ -7,88 +7,10 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"strings"
 
 	"github.com/samber/lo/mutable"
 	"golang.org/x/tools/go/ast/astutil"
 )
-
-type Config struct {
-	TraceStmt bool
-	TraceVar  bool
-	TraceCall bool
-
-	ShowTimestamp bool
-	ShowGoroutine bool
-
-	UniqueString string
-	LineWidth    int
-
-	ResolveType ResolveType
-	ModuleName  string
-}
-
-func (cfg *Config) LibraryPackageName() string {
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return "main"
-	}
-	return "xtracego_" + cfg.UniqueString
-}
-
-func (cfg *Config) LibraryImportPath() string {
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return ""
-	}
-	return cfg.ModuleName + "/" + cfg.LibraryPackageName()
-}
-
-func (cfg *Config) LibraryFileName() string {
-	return "xtracego_" + cfg.UniqueString + ".go"
-}
-
-func (cfg *Config) ExecutableFileName() string {
-	return "main_" + cfg.UniqueString
-}
-
-func (cfg *Config) IdentifierPrintlnStatement() string {
-	funcName := "PrintlnStatement_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return funcName
-	}
-	return cfg.LibraryPackageName() + "." + funcName
-}
-
-func (cfg *Config) IdentifierPrintlnVariable() string {
-	funcName := "PrintlnVariable_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return funcName
-	}
-	return cfg.LibraryPackageName() + "." + funcName
-}
-
-func (cfg *Config) IdentifierPrintlnReturnVariable() string {
-	funcName := "PrintlnReturnVariable_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return funcName
-	}
-	return cfg.LibraryPackageName() + "." + funcName
-}
-
-func (cfg *Config) IdentifierPrintlnCall() string {
-	funcName := "PrintlnCall_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return funcName
-	}
-	return cfg.LibraryPackageName() + "." + funcName
-}
-
-func (cfg *Config) IdentifierPrintlnReturn() string {
-	funcName := "PrintlnReturn_" + cfg.UniqueString
-	if cfg.ResolveType == ResolveType_CommandLineArguments {
-		return funcName
-	}
-	return cfg.LibraryPackageName() + "." + funcName
-}
 
 func ProcessCode(config Config, filename string, src []byte) (dst []byte, err error) {
 	fset := token.NewFileSet()
@@ -97,7 +19,7 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 		return nil, fmt.Errorf("failed to parse: %w", err)
 	}
 
-	s := &Xtrace{
+	x := &Xtrace{
 		Config: config,
 		fset:   fset,
 		src:    src,
@@ -114,12 +36,12 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 			switch node.Tok {
 			case token.VAR:
 				if _, isFile := c.Parent().(*ast.File); isFile {
-					s.logFileStatement(c, node)
-					s.logFileVariable(c, node)
+					x.logFileStatement(c, node)
+					x.logFileVariable(c, node)
 				}
 			case token.CONST:
-				s.logFileStatement(c, node)
-				s.logFileVariable(c, node)
+				x.logFileStatement(c, node)
+				x.logFileVariable(c, node)
 			}
 		case *ast.FuncLit, *ast.FuncDecl:
 			var results *ast.FieldList
@@ -134,12 +56,12 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 				for _, param := range results.List {
 					if len(param.Names) == 0 {
 						count++
-						param.Names = []*ast.Ident{ast.NewIdent(fmt.Sprintf("return_%d_%s", count, s.UniqueString))}
+						param.Names = []*ast.Ident{ast.NewIdent(fmt.Sprintf("return_%d_%s", count, x.UniqueString))}
 					} else {
 						for _, name := range param.Names {
 							count++
 							if name.Name == "_" {
-								name.Name = fmt.Sprintf("return_%d_%s", count, s.UniqueString)
+								name.Name = fmt.Sprintf("return_%d_%s", count, x.UniqueString)
 							}
 						}
 					}
@@ -148,34 +70,34 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 			}
 		case ast.Stmt:
 			{
-				if info, ok := s.funcByBody[node]; ok {
-					s.logCallVariables(c, info)
-					s.logReturnVariables(c, info)
-					s.logCall(c, info)
+				if info, ok := x.funcByBody[node]; ok {
+					x.logCallVariables(c, info)
+					x.logReturnVariables(c, info)
+					x.logCall(c, info)
 				}
-				if info, ok := s.forByBody[node]; ok {
-					s.logForVariables(c, info)
+				if info, ok := x.forByBody[node]; ok {
+					x.logForVariables(c, info)
 				}
-				if info, ok := s.caseByBody[node]; ok {
-					s.logCaseStatement(c, info)
+				if info, ok := x.caseByBody[node]; ok {
+					x.logCaseStatement(c, info)
 				}
-				if info, ok := s.ifElseByBody[node]; ok {
-					s.logIfVariables(c, info)
-					s.logIfElseStatement(c, info)
+				if info, ok := x.ifElseByBody[node]; ok {
+					x.logIfVariables(c, info)
+					x.logIfElseStatement(c, info)
 				}
 			}
 
-			s.tryLogLocalStatement(c, node)
+			x.tryLogLocalStatement(c, node)
 
 			switch node := node.(type) {
 			case *ast.DeclStmt:
 				if decl, ok := node.Decl.(*ast.GenDecl); ok && decl.Tok == token.VAR {
-					s.logLocalVariable(c, node)
+					x.logLocalVariable(c, node)
 				}
 			case *ast.AssignStmt:
 				if _, ok := c.Parent().(*ast.BlockStmt); ok {
 					if node.Tok == token.ASSIGN || node.Tok == token.DEFINE {
-						s.logLocalAssignment(c, node)
+						x.logLocalAssignment(c, node)
 					}
 				}
 			case *ast.EmptyStmt:
@@ -202,7 +124,7 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 		return true
 	})
 
-	if s.libraryRequired && s.ResolveType != ResolveType_CommandLineArguments {
+	if x.libraryRequired && x.ResolveType != ResolveType_CommandLineArguments {
 		astutil.AddImport(fset, f, config.LibraryImportPath())
 	}
 
@@ -212,55 +134,6 @@ func ProcessCode(config Config, filename string, src []byte) (dst []byte, err er
 	}
 
 	return buf.Bytes(), nil
-}
-
-type Xtrace struct {
-	Config
-	fset *token.FileSet
-	src  []byte
-
-	funcByBody   map[ast.Stmt]*FuncInfo
-	forByBody    map[ast.Stmt]*ForInfo
-	caseByBody   map[ast.Stmt]*CaseInfo
-	ifElseByBody map[ast.Stmt]*IfElseInfo
-
-	libraryRequired bool
-}
-
-func (s *Xtrace) fragment(pos, end token.Pos) string {
-	return string(s.src[pos-1 : end-1])
-}
-func (s *Xtrace) fragmentLine(pos token.Pos) string {
-	begin := pos - 1
-	for ; begin > 0; begin-- {
-		if s.src[begin-1] == '\n' || s.src[begin-1] == '\r' {
-			break
-		}
-	}
-	end := pos
-	for ; end < token.Pos(len(s.src)); end++ {
-		if s.src[end] == '\n' || s.src[end] == '\r' {
-			break
-		}
-	}
-	frag := s.fragment(begin+1, end+1)
-	frag, _, _ = strings.Cut(frag, "\n")
-	frag, _, _ = strings.Cut(frag, "\r")
-	return frag
-}
-
-func (s *Xtrace) IdentShowTimestamp() string {
-	if s.ShowTimestamp {
-		return "true"
-	}
-	return "false"
-}
-
-func (s *Xtrace) IdentShowGoroutine() string {
-	if s.ShowGoroutine {
-		return "true"
-	}
-	return "false"
 }
 
 type FuncInfo struct {
